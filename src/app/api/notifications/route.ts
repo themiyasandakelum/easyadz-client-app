@@ -49,9 +49,11 @@ export async function GET(request: NextRequest) {
 
     const rows = await sql`
       SELECT n.id, n.sender_id, n.title, n.body, n.is_read, n.created_at,
+             COALESCE(n.notification_type, 'interest') as notification_type,
+             n.link,
              p.name as sender_name, p.avatar_url as sender_avatar_url
       FROM notifications n
-      JOIN profiles p ON p.id = n.sender_id
+      LEFT JOIN profiles p ON p.id = n.sender_id
       WHERE n.user_id = ${profileId}
       ORDER BY n.created_at DESC
       LIMIT 100

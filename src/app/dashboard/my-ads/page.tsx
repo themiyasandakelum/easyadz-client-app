@@ -13,6 +13,7 @@ interface MyListing {
   category: string;
   location: string | null;
   images: string[] | null;
+  status?: string;
   attributes?: Record<string, string>;
 }
 
@@ -57,8 +58,8 @@ export default function MyAdsPage() {
 
   return (
     <DashboardScaffold headerContent={<h1 className="text-lg font-semibold text-gray-900">My Active Ads</h1>}>
-      <div className="mx-auto max-w-lg min-[600px]:max-w-6xl px-4 py-6">
-        <div className="flex items-center justify-between mb-4">
+      <div className="mx-auto w-full max-w-7xl px-4 py-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <p className="text-sm text-gray-600">
             Manage your listings. Bump up or edit to get more visibility.
           </p>
@@ -71,10 +72,12 @@ export default function MyAdsPage() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 min-[500px]:grid-cols-2 min-[600px]:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-xl border border-gray-200 bg-white h-48 animate-pulse" />
-            ))}
+          <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+            <div className="animate-pulse">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-14 border-b border-gray-100 last:border-0" />
+              ))}
+            </div>
           </div>
         ) : listings.length === 0 ? (
           <div className="rounded-xl border border-gray-200 bg-white p-12 text-center">
@@ -88,50 +91,95 @@ export default function MyAdsPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 min-[500px]:grid-cols-2 min-[600px]:grid-cols-3 gap-4">
-            {listings.map((listing) => (
-              <div
-                key={listing.id}
-                className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
-              >
-                <Link
-                  href={`/dashboard/marketplace/listing/${listing.id}`}
-                  className="flex flex-col flex-1"
-                >
-                  <div className="aspect-[4/3] bg-gray-100 flex items-center justify-center overflow-hidden">
-                    {listing.images?.[0] ? (
-                      <img src={listing.images[0]} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <span className="text-4xl text-gray-300">
-                        {LISTING_CATEGORIES.find((c) => c.value === listing.category)?.icon ?? "📦"}
+          <div className="rounded-xl border border-gray-200 bg-white overflow-hidden overflow-x-auto">
+            <table className="w-full min-w-[640px]">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Ad</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Title</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Category</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Price</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Details</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {listings.map((listing) => (
+                  <tr key={listing.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50">
+                    <td className="px-4 py-3">
+                      <Link href={`/dashboard/marketplace/listing/${listing.id}`} className="block">
+                        <div className="h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                          {listing.images?.[0] ? (
+                            <img src={listing.images[0]} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <span className="flex h-full w-full items-center justify-center text-xl text-gray-300">
+                              {LISTING_CATEGORIES.find((c) => c.value === listing.category)?.icon ?? "📦"}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/dashboard/marketplace/listing/${listing.id}`}
+                        className="font-medium text-gray-900 hover:text-primary-600 truncate max-w-[200px] block"
+                      >
+                        {listing.title}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${
+                          listing.status === "approved"
+                            ? "border-green-200 bg-green-50 text-green-700"
+                            : listing.status === "rejected"
+                              ? "border-red-200 bg-red-50 text-red-700"
+                              : "border-amber-200 bg-amber-50 text-amber-700"
+                        }`}
+                      >
+                        {listing.status === "approved" ? "Approved" : listing.status === "rejected" ? "Rejected" : "Pending"}
                       </span>
-                    )}
-                  </div>
-                  <div className="p-3 flex-1">
-                    <h3 className="font-semibold text-gray-900 truncate">{listing.title}</h3>
-                    <p className="text-sm text-gray-600 truncate">{getListingSubtitle(listing)}</p>
-                    {listing.price != null && (
-                      <p className="text-sm font-medium text-green-700 mt-1">Rs. {Number(listing.price).toLocaleString()}</p>
-                    )}
-                  </div>
-                </Link>
-                <div className="flex gap-2 p-3 border-t border-gray-100">
-                  <Link
-                    href={`/dashboard/marketplace/listing/${listing.id}`}
-                    className="flex-1 text-center rounded-lg border border-primary-200 px-3 py-2 text-sm font-medium text-primary-700 hover:bg-primary-50"
-                  >
-                    Edit
-                  </Link>
-                  <button
-                    type="button"
-                    className="flex-1 rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white hover:bg-primary-700"
-                    title="Bump Up (coming soon)"
-                  >
-                    Bump Up
-                  </button>
-                </div>
-              </div>
-            ))}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-1 text-sm text-gray-600">
+                        {LISTING_CATEGORIES.find((c) => c.value === listing.category)?.icon}
+                        <span className="capitalize">{listing.category}</span>
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {listing.price != null ? (
+                        <span className="font-medium text-green-700">Rs. {Number(listing.price).toLocaleString()}</span>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm text-gray-600 truncate max-w-[180px] block" title={getListingSubtitle(listing) || listing.location || ""}>
+                        {getListingSubtitle(listing) || listing.location || "—"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-2">
+                        <Link
+                          href={`/dashboard/post-ad?edit=${listing.id}`}
+                          className="rounded-lg border border-primary-200 px-3 py-1.5 text-sm font-medium text-primary-700 hover:bg-primary-50"
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          type="button"
+                          className="rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
+                          title="Bump Up (coming soon)"
+                        >
+                          Bump Up
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

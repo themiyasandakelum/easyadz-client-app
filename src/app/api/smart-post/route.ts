@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
   if (contentType.includes("multipart/form-data")) {
     const formData = await request.formData();
     const file = formData.get("image") as File | null;
-    if (!file || !file.type.startsWith("image/")) {
+    if (!file || !(file instanceof File) || !file.type?.startsWith("image/")) {
       return NextResponse.json(
         { error: "Please upload an image file." },
         { status: 400 }

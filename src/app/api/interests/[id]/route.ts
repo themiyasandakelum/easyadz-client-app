@@ -95,15 +95,17 @@ export async function PATCH(
       );
     }
 
-    // Optionally add "Interest Accepted" notification for the sender when accepted
+    // Add "Interest Accepted" notification for the sender when accepted
     if (status === "accepted") {
       const receiverNameRows = await sql`
         SELECT name FROM profiles WHERE id = ${receiverId} LIMIT 1
       `;
       const receiverName = (Array.isArray(receiverNameRows) ? receiverNameRows[0] : receiverNameRows)?.name ?? "Someone";
+      const senderId = (row as { sender_id: string }).sender_id;
+      const profileLink = `/dashboard/profile/${receiverId}`;
       await sql`
-        INSERT INTO notifications (user_id, sender_id, title, body)
-        VALUES (${(row as { sender_id: string }).sender_id}, ${receiverId}, 'Interest accepted', ${`${receiverName} accepted your interest! Start chatting.`})
+        INSERT INTO notifications (user_id, sender_id, title, body, notification_type, link)
+        VALUES (${senderId}, ${receiverId}, 'Interest accepted', ${`${receiverName} accepted your interest! Start chatting.`}, 'interest', ${profileLink})
       `;
     }
 

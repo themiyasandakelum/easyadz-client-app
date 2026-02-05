@@ -56,6 +56,7 @@ export default function AdminVerificationsPage() {
   const [viewing, setViewing] = useState<VerificationItem | null>(null);
   const [editing, setEditing] = useState<VerificationItem | null>(null);
   const [editNotes, setEditNotes] = useState("");
+  const [editStatus, setEditStatus] = useState<"approved" | "rejected">("approved");
 
   const fetchVerifications = useCallback(async () => {
     setLoading(true);
@@ -122,24 +123,44 @@ export default function AdminVerificationsPage() {
     }
   }
 
-  async function handleSaveNotes() {
+  async function handleSaveEdit() {
     if (!editing) return;
     setActioning(editing.id);
     try {
       const token = await getIdToken();
       if (!token) return;
+      const body: { admin_notes?: string; status?: string } = {};
+      if (editNotes !== (editing.admin_notes ?? "")) body.admin_notes = editNotes || undefined;
+      const canChangeStatus =
+        editing.status === "approved" ||
+        editing.status === "rejected" ||
+        editing.status === "pending_admin";
+      if (canChangeStatus && editStatus !== editing.status) {
+        body.status = editStatus;
+      }
+      if (Object.keys(body).length === 0) {
+        setEditing(null);
+        return;
+      }
       const res = await fetch(`/api/admin/verifications/${editing.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ admin_notes: editNotes || undefined }),
+        body: JSON.stringify(body),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => ({}));
         setItems((prev) =>
           prev.map((i) =>
-            i.id === editing.id ? { ...i, admin_notes: editNotes || null } : i
+            i.id === editing.id
+              ? {
+                  ...i,
+                  admin_notes: body.admin_notes !== undefined ? (body.admin_notes ?? null) : i.admin_notes,
+                  status: body.status ?? i.status,
+                }
+              : i
           )
         );
         setEditing(null);
@@ -157,6 +178,11 @@ export default function AdminVerificationsPage() {
   function openEdit(item: VerificationItem) {
     setEditing(item);
     setEditNotes(item.admin_notes ?? "");
+    setEditStatus(
+      item.status === "approved" || item.status === "rejected"
+        ? item.status
+        : "approved"
+    );
   }
 
   if (loading && items.length === 0) {
@@ -376,22 +402,46 @@ export default function AdminVerificationsPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="mb-4 text-lg font-bold text-white">
-              Edit notes · {editing.name}
+              Edit · {editing.name}
             </h2>
-            <label className="mb-2 block text-sm font-medium text-slate-400">
-              Admin notes
-            </label>
-            <textarea
-              value={editNotes}
-              onChange={(e) => setEditNotes(e.target.value)}
-              placeholder="Add or update notes..."
-              className="mb-4 w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-              rows={4}
-            />
+
+            {(editing.status === "approved" ||
+              editing.status === "rejected" ||
+              editing.status === "pending_admin") && (
+              <div className="mb-4">
+                <label className="mb-2 block text-sm font-medium text-slate-400">
+                  Status
+                </label>
+                <select
+                  value={editStatus}
+                  onChange={(e) =>
+                    setEditStatus(e.target.value as "approved" | "rejected")
+                  }
+                  className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none"
+                >
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+            )}
+
+            <div className="mb-4">
+              <label className="mb-2 block text-sm font-medium text-slate-400">
+                Admin notes
+              </label>
+              <textarea
+                value={editNotes}
+                onChange={(e) => setEditNotes(e.target.value)}
+                placeholder="Add or update notes..."
+                className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                rows={4}
+              />
+            </div>
+
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={handleSaveNotes}
+                onClick={handleSaveEdit}
                 disabled={actioning === editing.id}
                 className="rounded-lg bg-amber-600 px-4 py-2 font-medium text-white hover:bg-amber-500 disabled:opacity-50"
               >

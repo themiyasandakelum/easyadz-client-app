@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { getIdToken } from "@/lib/auth";
@@ -19,6 +19,10 @@ import type { SmartPostResponse } from "@/app/api/smart-post/route";
 
 export default function PostAdPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
+  const isEditMode = Boolean(editId);
+
   const [category, setCategory] = useState<ListingCategory | "">("");
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
@@ -31,6 +35,7 @@ export default function PostAdPage() {
   const [smartPostLoading, setSmartPostLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [description, setDescription] = useState("");
+  const [loadedAttributes, setLoadedAttributes] = useState<Record<string, string> | null>(null);
 
   useEffect(() => {
     const auth = getFirebaseAuth();
@@ -46,8 +51,60 @@ export default function PostAdPage() {
   }, [router]);
 
   useEffect(() => {
-    setAttributes({});
-  }, [category]);
+    if (!editId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await getIdToken();
+        if (!token) return;
+        const res = await fetch(`/api/listings/${editId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (cancelled) return;
+        let attrs = data.attributes;
+        if (typeof attrs === "string") {
+          try {
+            attrs = JSON.parse(attrs);
+          } catch {
+            attrs = {};
+          }
+        }
+        attrs = (attrs as Record<string, string>) || {};
+        setCategory(data.category || "");
+        setTitle(data.title || "");
+        setPrice(data.price != null ? String(data.price) : "");
+        setLocation(data.location || "");
+        setDescription(typeof data.description === "string" ? data.description : "");
+        setAttributes(attrs);
+        const imgs = data.images;
+        const urlList = Array.isArray(imgs) ? imgs : [];
+        if (urlList.length > 0) {
+          setImageSlots(
+            urlList.map((url: string, i: number) => ({
+              id: `existing-${i}-${url.slice(-12)}`,
+              preview: url,
+            }))
+          );
+        }
+      } catch {
+        if (!cancelled) setError("Failed to load listing.");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [editId]);
+
+  useEffect(() => {
+    if (!isEditMode) setAttributes({});
+  }, [category, isEditMode]);
+
+  useEffect(() => {
+    if (loadedAttributes != null && isEditMode) {
+      setAttributes(loadedAttributes);
+      setLoadedAttributes(null);
+    }
+  }, [loadedAttributes, isEditMode]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -61,10 +118,79 @@ export default function PostAdPage() {
       const token = await getIdToken();
       if (!token) throw new Error("Not signed in");
       const priceNum = parseFloat(price.trim());
+      if (isNaN(priceNum) || priceNum < 0) {
+        throw new Error("Price must be 0 or greater.");
+      }
       const attrsFiltered = Object.fromEntries(
         Object.entries(attributes).filter(([, v]) => v != null && String(v).trim() !== "")
       );
       const attrs = Object.keys(attrsFiltered).length > 0 ? attrsFiltered : null;
+
+      if (isEditMode && editId) {
+        const res = await fetch(`/api/listings/${editId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: title.trim(),
+            price: priceNum,
+            description: description.trim(),
+            location: location.trim() || null,
+            attributes: attrs,
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error ?? "Failed to update ad.");
+        }
+        if (imageSlots.length > 0) {
+          const orderedSlots = [...imageSlots];
+          if (mainImageIndex > 0) {
+            const [main] = orderedSlots.splice(mainImageIndex, 1);
+            orderedSlots.unshift(main);
+          }
+          const existingUrls: string[] = [];
+          const newFiles: File[] = [];
+          for (const slot of orderedSlots) {
+            if (slot.file) {
+              newFiles.push(slot.file);
+            } else if (slot.preview && (slot.preview.startsWith("http://") || slot.preview.startsWith("https://"))) {
+              existingUrls.push(slot.preview);
+            }
+          }
+          if (newFiles.length > 0) {
+            const formData = new FormData();
+            formData.append("existing_urls", JSON.stringify(existingUrls));
+            for (let i = 0; i < newFiles.length; i++) {
+              const blob = await applyEasyAdzWatermark(newFiles[i]);
+              formData.append("images", blob, `img_${i + 1}.jpg`);
+            }
+            const uploadRes = await fetch(`/api/listings/${editId}/images`, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${token}` },
+              body: formData,
+            });
+            if (!uploadRes.ok) {
+              const data = await uploadRes.json().catch(() => ({}));
+              throw new Error(data.error ?? "Failed to upload images.");
+            }
+          } else if (existingUrls.length > 0) {
+            await fetch(`/api/listings/${editId}`, {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ images: existingUrls }),
+            });
+          }
+        }
+        router.push("/dashboard/my-ads");
+        return;
+      }
+
       const res = await fetch("/api/listings", {
         method: "POST",
         headers: {
@@ -123,13 +249,25 @@ export default function PostAdPage() {
       setError("Upload at least one photo to use AI Smart Post.");
       return;
     }
+    const slot = imageSlots[0];
+    let imageToSend: File;
+    if (slot.file) {
+      imageToSend = slot.file;
+    } else if (slot.preview?.startsWith("http")) {
+      const res = await fetch(slot.preview);
+      const blob = await res.blob();
+      imageToSend = new File([blob], "image.jpg", { type: blob.type || "image/jpeg" });
+    } else {
+      setError("Upload at least one photo to use AI Smart Post.");
+      return;
+    }
     setError(null);
     setSmartPostLoading(true);
     try {
       const token = await getIdToken();
       if (!token) throw new Error("Not signed in");
       const formData = new FormData();
-      formData.append("image", imageSlots[0].file);
+      formData.append("image", imageToSend);
       const res = await fetch("/api/smart-post", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -165,12 +303,14 @@ export default function PostAdPage() {
     <DashboardScaffold>
       <div className="mx-auto max-w-2xl px-4 py-6">
             <Link
-              href="/dashboard"
+              href={isEditMode ? "/dashboard/my-ads" : "/dashboard"}
               className="mb-4 inline-block text-sm font-medium text-primary-600 hover:text-primary-700"
             >
-              ← Back to dashboard
+              ← Back to {isEditMode ? "My Ads" : "dashboard"}
             </Link>
-            <h1 className="text-xl font-bold text-primary-800 mb-6">Post an Ad</h1>
+            <h1 className="text-xl font-bold text-primary-800 mb-6">
+              {isEditMode ? "Edit Ad" : "Post an Ad"}
+            </h1>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
@@ -182,7 +322,9 @@ export default function PostAdPage() {
                   value={category}
                   onChange={(e) => setCategory(e.target.value as ListingCategory)}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white"
+                  disabled={isEditMode}
+                  className={`w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none ${isEditMode ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
+                  title={isEditMode ? "Category cannot be changed when editing" : undefined}
                 >
                   <option value="">Select category</option>
                   {POST_AD_CATEGORIES.map((c) => (
@@ -244,7 +386,7 @@ export default function PostAdPage() {
                 onChange={setImageSlots}
                 mainImageIndex={mainImageIndex}
                 onMainImageChange={setMainImageIndex}
-                minImages={3}
+                minImages={isEditMode ? 0 : 3}
                 disabled={saving}
               />
 
@@ -454,7 +596,7 @@ export default function PostAdPage() {
                 disabled={saving}
                 className="w-full rounded-lg bg-primary-600 py-3 text-white font-medium hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {saving ? "Posting…" : "Post Ad"}
+                {saving ? (isEditMode ? "Saving…" : "Posting…") : (isEditMode ? "Save changes" : "Post Ad")}
               </button>
             </form>
       </div>

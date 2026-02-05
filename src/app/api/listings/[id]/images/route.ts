@@ -81,9 +81,19 @@ export async function POST(
     }
   }
   const toUpload = files.slice(0, MAX_FILES);
-  if (toUpload.length === 0) {
+  let existingUrls: string[] = [];
+  const existingParam = formData.get("existing_urls");
+  if (existingParam && typeof existingParam === "string") {
+    try {
+      const parsed = JSON.parse(existingParam);
+      existingUrls = Array.isArray(parsed) ? parsed.filter((u): u is string => typeof u === "string") : [];
+    } catch {
+      /* ignore */
+    }
+  }
+  if (toUpload.length === 0 && existingUrls.length === 0) {
     return NextResponse.json(
-      { error: "No image files sent. Use field 'images' or 'image_0', 'image_1', ..." },
+      { error: "No image files sent. Use field 'images' or 'image_0', 'image_1', ... Or provide existing_urls for edit." },
       { status: 400 }
     );
   }
@@ -118,7 +128,7 @@ export async function POST(
       );
     }
 
-    const urls: string[] = [];
+    const newUrls: string[] = [];
     for (let i = 0; i < toUpload.length; i++) {
       const file = toUpload[i];
       const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
@@ -139,9 +149,10 @@ export async function POST(
         );
       }
       const { data: urlData } = supabase.storage.from(LISTINGS_BUCKET).getPublicUrl(path);
-      urls.push(urlData.publicUrl);
+      newUrls.push(urlData.publicUrl);
     }
 
+    const urls = [...existingUrls, ...newUrls];
     await sql`
       UPDATE listings SET images = ${urls}
       WHERE id = ${listingId}

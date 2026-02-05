@@ -186,22 +186,30 @@ export default function AdminUsersPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() => toggleStatus(user)}
-                        disabled={togglingId === user.id || user.role === "admin"}
-                        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed ${
-                          user.status === "active"
-                            ? "bg-red-600/80 text-white hover:bg-red-600"
-                            : "bg-green-600/80 text-white hover:bg-green-600"
-                        }`}
-                      >
-                        {togglingId === user.id
-                          ? "..."
-                          : user.status === "active"
-                            ? "Ban"
-                            : "Activate"}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/admin/listings?seller=${user.id}`}
+                          className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700"
+                        >
+                          View ads
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => toggleStatus(user)}
+                          disabled={togglingId === user.id || user.role === "admin"}
+                          className={`rounded-lg px-3 py-1.5 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                            user.status === "active"
+                              ? "bg-red-600/80 text-white hover:bg-red-600"
+                              : "bg-green-600/80 text-white hover:bg-green-600"
+                          }`}
+                        >
+                          {togglingId === user.id
+                            ? "..."
+                            : user.status === "active"
+                              ? "Ban"
+                              : "Activate"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

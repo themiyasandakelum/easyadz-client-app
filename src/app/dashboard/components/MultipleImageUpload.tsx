@@ -7,7 +7,7 @@ const MIN_IMAGES = 3;
 
 export interface ImageSlot {
   id: string;
-  file: File;
+  file?: File;
   preview: string;
 }
 
@@ -61,7 +61,7 @@ export function MultipleImageUpload({
     const idx = value.findIndex((s) => s.id === id);
     if (idx < 0) return;
     const slot = value[idx];
-    if (slot) URL.revokeObjectURL(slot.preview);
+    if (slot?.preview?.startsWith("blob:")) URL.revokeObjectURL(slot.preview);
     const next = value.filter((s) => s.id !== id);
     onChange(next);
     if (onMainImageChange) {

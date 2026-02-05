@@ -10,7 +10,8 @@ import { signOut } from "@/lib/auth";
 const SIDEBAR_ITEMS = [
   { href: "/admin/users", label: "User Management", icon: "👥" },
   { href: "/admin/verifications", label: "Verifications", icon: "✓" },
-  { href: "/admin/reports", label: "Ad Moderation", icon: "🚩" },
+  { href: "/admin/listings", label: "Listing Moderation", icon: "📋" },
+  { href: "/admin/reports", label: "Ad Reports", icon: "🚩" },
   { href: "/admin/settings", label: "Pricing Settings", icon: "💰" },
 ];
 

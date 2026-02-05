@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
     const sellerId = profile.id;
 
     const rows = await sql`
-      INSERT INTO listings (seller_id, category, title, price, description, location, attributes, images, is_featured)
+      INSERT INTO listings (seller_id, category, title, price, description, location, attributes, images, is_featured, status)
       VALUES (
         ${sellerId},
         ${category},
@@ -178,9 +178,10 @@ export async function POST(request: NextRequest) {
         ${location?.trim() ?? null},
         ${attributes ? JSON.stringify(attributes) : null},
         ${images?.length ? images : []},
-        ${is_featured ?? false}
+        ${is_featured ?? false},
+        'pending'
       )
-      RETURNING id, seller_id, category, title, price, description, location, attributes, images, is_featured, created_at
+      RETURNING id, seller_id, category, title, price, description, location, attributes, images, is_featured, status, created_at
     `;
     const listing = Array.isArray(rows) ? rows[0] : rows;
     return NextResponse.json(listing, { status: 201 });

@@ -15,6 +15,8 @@ interface Notification {
   body: string | null;
   is_read: boolean;
   created_at: string;
+  notification_type?: string;
+  link?: string | null;
   sender_name: string | null;
   sender_avatar_url: string | null;
 }
@@ -66,7 +68,12 @@ export default function DashboardNotificationsPage() {
         );
       }
     }
-    router.push(`/dashboard/profile/${n.sender_id}`);
+    // Use link when available (verification → /dashboard/verification, interest → pending-requests or profile)
+    if (n.link) {
+      router.push(n.link);
+    } else {
+      router.push(`/dashboard/profile/${n.sender_id}`);
+    }
   }
 
   useEffect(() => {
@@ -127,7 +134,13 @@ export default function DashboardNotificationsPage() {
                   className="w-full flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 text-left shadow-sm transition hover:bg-primary-50 hover:border-primary-200"
                 >
                   <div className="relative shrink-0">
-                    {n.sender_avatar_url ? (
+                    {n.notification_type === "verification" ? (
+                      <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center text-xl" title="Verification">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-emerald-600">
+                          <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 0 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    ) : n.sender_avatar_url ? (
                       <img
                         src={n.sender_avatar_url}
                         alt=""

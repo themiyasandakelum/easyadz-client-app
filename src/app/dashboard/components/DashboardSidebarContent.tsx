@@ -52,6 +52,28 @@ export function DashboardSidebarContent({
   const pathname = usePathname();
   const [myListings, setMyListings] = useState<MyListing[]>([]);
   const [loadingListings, setLoadingListings] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await getIdToken();
+        if (!token) return;
+        const res = await fetch("/api/interests", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (!cancelled && typeof data?.pending_received === "number") {
+          setPendingCount(data.pending_received);
+        }
+      } catch {
+        if (!cancelled) setPendingCount(0);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (!fetchListings) return;
@@ -171,6 +193,7 @@ export function DashboardSidebarContent({
         <ul className="space-y-0.5">
           {drawerNavItems.map(({ href, label, icon }) => {
             const isActive = pathname === href.split("?")[0];
+            const showPendingBadge = href === "/dashboard/pending-requests" && pendingCount > 0;
             return (
               <li key={href}>
                 <Link
@@ -185,7 +208,17 @@ export function DashboardSidebarContent({
                   }`}
                   title={collapsed ? label : undefined}
                 >
-                  <span className="text-lg shrink-0" aria-hidden>{icon}</span>
+                  <span className="relative text-lg shrink-0" aria-hidden>
+                    {icon}
+                    {showPendingBadge && (
+                      <span
+                        className="absolute -top-1 -right-1 min-w-[1.125rem] h-[1.125rem] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1"
+                        aria-label={`${pendingCount} pending`}
+                      >
+                        {pendingCount > 99 ? "99+" : pendingCount}
+                      </span>
+                    )}
+                  </span>
                   {!collapsed && <span>{label}</span>}
                 </Link>
               </li>
@@ -219,12 +252,8 @@ export function DashboardSidebarContent({
             ) : (
               <ul className="space-y-1">
                 {myListings.map((listing) => (
-                  <li key={listing.id}>
-                    <Link
-                      href={`/dashboard/marketplace/listing/${listing.id}`}
-                      onClick={handleLinkClick}
-                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-primary-50 transition"
-                    >
+                  <li key={listing.id} className="group">
+                    <div className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-primary-50 transition">
                       <span className="text-base shrink-0" aria-hidden>
                         {LISTING_CATEGORIES.find((c) => c.value === listing.category)?.icon ?? "📦"}
                       </span>
@@ -234,7 +263,25 @@ export function DashboardSidebarContent({
                           Rs. {Number(listing.price).toLocaleString()}
                         </span>
                       )}
-                    </Link>
+                      <div className="flex gap-1 shrink-0">
+                        <Link
+                          href={`/dashboard/marketplace/listing/${listing.id}`}
+                          onClick={handleLinkClick}
+                          className="rounded px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                          title="View"
+                        >
+                          View
+                        </Link>
+                        <Link
+                          href={`/dashboard/post-ad?edit=${listing.id}`}
+                          onClick={handleLinkClick}
+                          className="rounded px-2 py-1 text-xs font-medium text-primary-600 hover:bg-primary-100"
+                          title="Edit"
+                        >
+                          Edit
+                        </Link>
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ul>

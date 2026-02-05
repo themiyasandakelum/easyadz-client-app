@@ -160,14 +160,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Add notification for the receiver
+    // Add notification for the receiver (matrimonial request)
     const senderNameRows = await sql`
       SELECT name FROM profiles WHERE id = ${senderId} LIMIT 1
     `;
     const senderName = (Array.isArray(senderNameRows) ? senderNameRows[0] : senderNameRows)?.name ?? "Someone";
     await sql`
-      INSERT INTO notifications (user_id, sender_id, title, body)
-      VALUES (${receiverProfileId}, ${senderId}, 'New interest', ${`${senderName} sent you an interest.`})
+      INSERT INTO notifications (user_id, sender_id, title, body, notification_type, link)
+      VALUES (${receiverProfileId}, ${senderId}, 'New interest', ${`${senderName} sent you an interest.`}, 'interest', '/dashboard/pending-requests')
     `;
 
     return NextResponse.json(

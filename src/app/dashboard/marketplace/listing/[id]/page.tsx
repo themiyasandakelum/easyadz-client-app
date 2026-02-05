@@ -79,9 +79,11 @@ export default function ListingDetailPage() {
     let cancelled = false;
     (async () => {
       try {
+        const token = await getIdToken();
+        const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
         const [listingRes, contactRes] = await Promise.all([
-          fetch(`/api/listings/${id}`),
-          fetch(`/api/listings/${id}/contact`),
+          fetch(`/api/listings/${id}`, { headers }),
+          fetch(`/api/listings/${id}/contact`, { headers }),
         ]);
         if (listingRes.ok && !cancelled) {
           const data = await listingRes.json();

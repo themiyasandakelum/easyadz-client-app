@@ -68,7 +68,7 @@ export async function PATCH(
     );
   }
 
-  let body: { action?: string; admin_notes?: string };
+  let body: { action?: string; admin_notes?: string; status?: string };
   try {
     body = await request.json();
   } catch {
@@ -77,6 +77,7 @@ export async function PATCH(
 
   const action = body.action?.toLowerCase();
   const adminNotes = body.admin_notes ?? undefined;
+  const newStatus = body.status?.toLowerCase();
 
   if (!sql) {
     return NextResponse.json(
@@ -101,6 +102,27 @@ export async function PATCH(
 
     const currentStatus = (ver as { status: string }).status;
     const profileId = (ver as { profile_id: string }).profile_id;
+    const SYSTEM_PROFILE_ID = "00000000-0000-0000-0000-000000000001";
+
+    async function createVerificationNotification(
+      recipientProfileId: string,
+      status: "approved" | "rejected",
+      adminNotes: string | null
+    ) {
+      const isApproved = status === "approved";
+      const title = isApproved
+        ? "Your profile is verified!"
+        : "Verification request rejected";
+      const body = isApproved
+        ? "Congratulations! Your identity verification has been approved. You now have a verified badge."
+        : adminNotes?.trim()
+          ? `Your verification was rejected. ${adminNotes} Please upload your documents again and ensure your ID photo and selfie clearly match.`
+          : "Your verification was rejected. The documents may not match or the images were unclear. Please upload your ID and selfie again, ensuring they clearly show the same person.";
+      await sql`
+        INSERT INTO notifications (user_id, sender_id, title, body, notification_type, link)
+        VALUES (${recipientProfileId}::uuid, ${SYSTEM_PROFILE_ID}::uuid, ${title}, ${body}, 'verification', '/dashboard/verification')
+      `;
+    }
 
     if (action === "approve" || action === "reject") {
       if (currentStatus !== "pending_admin") {
@@ -126,11 +148,45 @@ export async function PATCH(
           WHERE id = ${id}::uuid
         `;
       }
+      await createVerificationNotification(profileId, newStatus, adminNotes ?? null);
       return NextResponse.json({
         id,
         status: newStatus,
         profile_id: profileId,
         message: action === "approve" ? "Verification approved." : "Verification rejected.",
+      });
+    }
+
+    if (newStatus === "approved" || newStatus === "rejected") {
+      if (adminNotes !== undefined) {
+        await sql`
+          UPDATE profile_verifications
+          SET status = ${newStatus}, admin_notes = ${adminNotes}
+          WHERE id = ${id}::uuid
+        `;
+      } else {
+        await sql`
+          UPDATE profile_verifications
+          SET status = ${newStatus}
+          WHERE id = ${id}::uuid
+        `;
+      }
+      await sql`
+        UPDATE profiles
+        SET is_verified = ${newStatus === "approved"}
+        WHERE id = ${profileId}
+      `;
+      const verRows2 = await sql`
+        SELECT admin_notes FROM profile_verifications WHERE id = ${id}::uuid LIMIT 1
+      `;
+      const ver2 = Array.isArray(verRows2) ? verRows2[0] : verRows2;
+      const notes = ver2 ? (ver2 as { admin_notes: string | null }).admin_notes : null;
+      await createVerificationNotification(profileId, newStatus, notes);
+      return NextResponse.json({
+        id,
+        status: newStatus,
+        profile_id: profileId,
+        message: `Status updated to ${newStatus}.`,
       });
     }
 
@@ -148,7 +204,7 @@ export async function PATCH(
     }
 
     return NextResponse.json(
-      { error: "Provide action (approve/reject) or admin_notes to update." },
+      { error: "Provide action (approve/reject), status (approved/rejected), or admin_notes to update." },
       { status: 400 }
     );
   } catch (err) {
