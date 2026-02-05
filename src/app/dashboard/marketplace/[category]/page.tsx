@@ -12,7 +12,7 @@ export default function MarketplaceCategoryPage() {
   const category = params?.category as string;
   const cat = LISTING_CATEGORIES.find((c) => c.value === category);
 
-  if (!category || !VALID_CATEGORIES.includes(category)) {
+  if (!category || !VALID_CATEGORIES.includes(category as (typeof VALID_CATEGORIES)[number])) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-primary-50 to-white">
         <div className="text-center">

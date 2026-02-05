@@ -7,6 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { getIdToken } from "@/lib/auth";
 import { DashboardScaffold } from "../components/DashboardScaffold";
+import { VerificationStatus, type VerificationStatusType } from "@/app/components/VerificationStatus";
 import { LISTING_CATEGORIES, type ListingCategory } from "@/lib/listings-types";
 import { PROFESSION_CATEGORIES } from "@/lib/profession";
 import { RELIGION_OPTIONS } from "@/lib/profile-options";
@@ -44,6 +45,8 @@ interface SearchProfile {
   ethnicity: string | null;
   civil_status: string | null;
   education_level: string | null;
+  is_verified?: boolean;
+  verification_status?: VerificationStatusType;
 }
 
 function getListingSubtitle(listing: SearchListing): string {
@@ -95,29 +98,71 @@ function ProfileSearchCard({ profile }: { profile: SearchProfile }) {
   return (
     <Link
       href={`/dashboard/profile/${profile.id}`}
-      className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md"
+      className="flex items-center gap-4 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md"
     >
-      <div className="aspect-[3/4] bg-gray-100 flex items-center justify-center overflow-hidden relative">
+      {/* Avatar */}
+      <div className="shrink-0">
         {imgUrl ? (
           <img
             src={imgUrl}
             alt=""
-            className={`h-full w-full object-cover ${blurred ? "blur-md" : ""}`}
+            className={`h-14 w-14 rounded-full object-cover ring-2 ring-gray-100 ${blurred ? "blur-sm" : ""}`}
           />
         ) : (
-          <span className="text-4xl text-gray-300">👤</span>
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400 text-2xl ring-2 ring-gray-100">
+            👤
+          </div>
         )}
       </div>
-      <div className="p-3">
-        <p className="font-semibold text-gray-900 truncate">{profile.name}</p>
-        {(profile.age != null || profile.profession) && (
-          <p className="text-sm text-gray-600 truncate">
-            {[profile.age != null ? `${profile.age} yrs` : null, profile.profession].filter(Boolean).join(" • ")}
-          </p>
-        )}
-        {profile.location && <p className="text-xs text-gray-500 truncate mt-0.5">{profile.location}</p>}
-        {profile.religion && <p className="text-xs text-gray-500 truncate">{profile.religion}</p>}
-        <p className="text-sm font-medium text-primary-600 mt-2">Send Interest →</p>
+
+      {/* Main content */}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 min-w-0">
+          <p className="font-semibold text-gray-900 truncate">{profile.name}</p>
+          <VerificationStatus
+            status={
+              profile.verification_status ??
+              (profile.is_verified ? "verified" : "unverified")
+            }
+          />
+        </div>
+
+        {/* Details grid (compact like your reference) */}
+        <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm text-gray-700">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-gray-400">🎂</span>
+            <span className="truncate">{profile.age != null ? `${profile.age} years` : "—"}</span>
+          </div>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-gray-400">🧑</span>
+            <span className="truncate">{profile.ethnicity ?? "—"}</span>
+          </div>
+
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-gray-400">📍</span>
+            <span className="truncate">{profile.location ?? profile.region_district ?? profile.country ?? "—"}</span>
+          </div>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-gray-400">🛐</span>
+            <span className="truncate">{profile.religion ?? "—"}</span>
+          </div>
+
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-gray-400">💼</span>
+            <span className="truncate">{profile.job_title ?? profile.profession ?? "—"}</span>
+          </div>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-gray-400">🎓</span>
+            <span className="truncate">{profile.education_level ?? "—"}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Action */}
+      <div className="shrink-0">
+        <span className="text-sm font-semibold text-primary-700 hover:text-primary-800">
+          More details →
+        </span>
       </div>
     </Link>
   );
@@ -143,6 +188,7 @@ export default function DashboardSearchPage() {
   const [ageMax, setAgeMax] = useState("");
   const [religion, setReligion] = useState("");
   const [profession, setProfession] = useState("");
+  const [onlyVerified, setOnlyVerified] = useState(false);
 
   const [listings, setListings] = useState<SearchListing[]>([]);
   const [profiles, setProfiles] = useState<SearchProfile[]>([]);
@@ -151,6 +197,8 @@ export default function DashboardSearchPage() {
     const cat = searchParams.get("category");
     if (cat && VALID_SEARCH_CATEGORIES.includes(cat as (typeof VALID_SEARCH_CATEGORIES)[number])) {
       setCategory(cat as SearchCategory);
+    } else if (!cat) {
+      setCategory("matrimonial");
     }
   }, [searchParams]);
 
@@ -190,7 +238,8 @@ export default function DashboardSearchPage() {
         if (ageMax.trim()) params.set("age_max", ageMax.trim());
         if (religion.trim()) params.set("religion", religion.trim());
         if (profession.trim()) params.set("profession", profession.trim());
-        params.set("limit", "50");
+        if (onlyVerified) params.set("only_verified", "true");
+        params.set("limit", "10");
         const res = await fetch(`/api/search/profiles?${params}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -338,6 +387,17 @@ export default function DashboardSearchPage() {
                             <option key={p} value={p}>{p}</option>
                           ))}
                         </select>
+                      </div>
+                      <div className="flex items-end">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={onlyVerified}
+                            onChange={(e) => setOnlyVerified(e.target.checked)}
+                            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                          />
+                          <span className="text-sm font-medium text-gray-700">Verified only</span>
+                        </label>
                       </div>
                     </div>
                   ) : (

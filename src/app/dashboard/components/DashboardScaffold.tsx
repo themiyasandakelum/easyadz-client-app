@@ -9,6 +9,7 @@ import { signOut } from "@/lib/auth";
 import { DashboardDrawer } from "./DashboardDrawer";
 import { DashboardSidebarContent } from "./DashboardSidebarContent";
 import { DashboardBottomNav } from "./DashboardBottomNav";
+import { VerificationStatus } from "@/app/components/VerificationStatus";
 
 const SIDEBAR_PIN_KEY = "dashboard-sidebar-pinned";
 const SIDEBAR_COLLAPSED_KEY = "dashboard-sidebar-collapsed";
@@ -108,6 +109,11 @@ export function DashboardScaffold({ children, headerContent }: DashboardScaffold
         }
         if (res.ok) {
           const profile = await res.json();
+          if (profile.status === "banned") {
+            await signOut();
+            router.replace("/suspended");
+            return;
+          }
           setVerificationStatus(profile.verification_status ?? "pending");
           setProfileAvatarUrl(profile.avatar_url ?? null);
         }
@@ -124,19 +130,23 @@ export function DashboardScaffold({ children, headerContent }: DashboardScaffold
     const auth = getFirebaseAuth();
     if (!auth?.currentUser) return;
     const refetchOnFocus = async () => {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) return;
-      const [notifRes, msgRes] = await Promise.all([
-        fetch("/api/notifications/count", { headers: { Authorization: `Bearer ${token}` } }),
-        fetch("/api/chat/unread-count", { headers: { Authorization: `Bearer ${token}` } }),
-      ]);
-      if (notifRes.ok) {
-        const d = await notifRes.json();
-        setNotificationUnread(d.unread ?? 0);
-      }
-      if (msgRes.ok) {
-        const d = await msgRes.json();
-        setMessageUnread(d.unread ?? 0);
+      try {
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) return;
+        const [notifRes, msgRes] = await Promise.all([
+          fetch("/api/notifications/count", { headers: { Authorization: `Bearer ${token}` } }),
+          fetch("/api/chat/unread-count", { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
+        if (notifRes.ok) {
+          const d = await notifRes.json();
+          setNotificationUnread(d.unread ?? 0);
+        }
+        if (msgRes.ok) {
+          const d = await msgRes.json();
+          setMessageUnread(d.unread ?? 0);
+        }
+      } catch {
+        // Ignore network errors (offline, failed to fetch, etc.)
       }
     };
     const handleVisibility = () => {
@@ -287,6 +297,26 @@ export function DashboardScaffold({ children, headerContent }: DashboardScaffold
               )}
             </Link>
 
+            <Link
+              href="/dashboard/verification"
+              className="flex items-center shrink-0 ml-2 min-[600px]:ml-3"
+              title={verificationStatus === "verified" ? "Verified" : verificationStatus === "pending" ? "Verification pending" : "Get verified"}
+            >
+              {verificationStatus === "verified" ? (
+                <VerificationStatus isVerified={true} />
+              ) : (
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                    verificationStatus === "pending"
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {verificationStatus === "pending" ? "⏳ Pending" : "Not verified"}
+                </span>
+              )}
+            </Link>
+
             <div
               ref={profileDropdownRef}
               className="relative flex items-center shrink-0 ml-3"
@@ -311,12 +341,23 @@ export function DashboardScaffold({ children, headerContent }: DashboardScaffold
                 )}
                 {verificationStatus === "verified" && (
                   <span
-                    className="absolute -bottom-0.5 -right-0.5 rounded-full bg-primary-500 p-1"
+                    className="absolute -bottom-0.5 -right-0.5 flex items-center justify-center rounded-full bg-[#1877F2] w-5 h-5 text-white"
                     title="Verified"
                     aria-label="Verified"
                   >
+                    <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+                      <path fillRule="evenodd" d="M20.707 5.293a1 1 0 010 1.414l-11 11a1 1 0 01-1.414 0l-5-5a1 1 0 011.414-1.414L9 15.586 19.293 5.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </span>
+                )}
+                {verificationStatus === "pending" && (
+                  <span
+                    className="absolute -bottom-0.5 -right-0.5 rounded-full bg-amber-500 p-1"
+                    title="Verification Pending"
+                    aria-label="Verification Pending"
+                  >
                     <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                     </svg>
                   </span>
                 )}
@@ -357,7 +398,7 @@ export function DashboardScaffold({ children, headerContent }: DashboardScaffold
           </div>
         </header>
 
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 flex flex-col min-h-0">{children}</main>
 
         <DashboardBottomNav />
       </div>

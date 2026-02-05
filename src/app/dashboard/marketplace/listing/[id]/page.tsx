@@ -36,6 +36,11 @@ export default function ListingDetailPage() {
   const [myProfileId, setMyProfileId] = useState<string | null>(null);
   const [messageLoading, setMessageLoading] = useState(false);
   const [messageError, setMessageError] = useState<string | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportDetails, setReportDetails] = useState("");
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reportSuccess, setReportSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [slideIndex, setSlideIndex] = useState(0);
 
@@ -315,8 +320,93 @@ export default function ListingDetailPage() {
                     📞 Call {contact.name ? contact.name : "seller"}
                   </a>
                 )}
+                <button
+                  type="button"
+                  onClick={() => setReportOpen(true)}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                >
+                  🚩 Report Ad
+                </button>
                 </div>
-              </div>
+                {reportOpen && (
+                  <div className="mt-4 p-4 rounded-xl border border-gray-200 bg-gray-50">
+                    {reportSuccess ? (
+                      <p className="text-sm text-green-700">Thank you. Your report has been submitted.</p>
+                    ) : (
+                      <>
+                        <h3 className="text-sm font-semibold text-gray-800 mb-2">Report this ad</h3>
+                        <select
+                          value={reportReason}
+                          onChange={(e) => setReportReason(e.target.value)}
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm mb-2"
+                        >
+                          <option value="">Select reason</option>
+                          <option value="Scam or fraud">Scam or fraud</option>
+                          <option value="Inappropriate content">Inappropriate content</option>
+                          <option value="Misleading information">Misleading information</option>
+                          <option value="Spam">Spam</option>
+                          <option value="Other">Other</option>
+                        </select>
+                        <textarea
+                          value={reportDetails}
+                          onChange={(e) => setReportDetails(e.target.value)}
+                          placeholder="Additional details (optional)"
+                          rows={2}
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm mb-2"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              setReportSubmitting(true);
+                              try {
+                                const token = await getIdToken();
+                                if (!token) {
+                                  router.replace("/signin");
+                                  return;
+                                }
+                                const res = await fetch("/api/reports", {
+                                  method: "POST",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${token}`,
+                                  },
+                                  body: JSON.stringify({
+                                    listingId: id,
+                                    reason: reportReason || "Reported by user",
+                                    details: reportDetails,
+                                  }),
+                                });
+                                if (res.ok) {
+                                  setReportSuccess(true);
+                                  setReportOpen(false);
+                                }
+                              } finally {
+                                setReportSubmitting(false);
+                              }
+                            }}
+                            disabled={reportSubmitting}
+                            className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-60"
+                          >
+                            {reportSubmitting ? "Submitting…" : "Submit Report"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setReportOpen(false);
+                              setReportReason("");
+                              setReportDetails("");
+                            }}
+                            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+                </div>
               </div>
             </div>
       </div>

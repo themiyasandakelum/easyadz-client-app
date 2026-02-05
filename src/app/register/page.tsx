@@ -7,6 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { signUpWithEmail, signInWithGoogle } from "@/lib/auth";
 import { POST_AD_CATEGORIES } from "@/lib/listings-types";
+import { AuthTopBar } from "../components/AuthTopBar";
 
 const LIFESTYLE_OPTIONS = [
   "Non-vegetarian",
@@ -145,6 +146,7 @@ export default function RegisterPage() {
           gender,
           lifestyle_preferences: selectedLifestyle,
           phone: phone.trim() || undefined,
+          email: email?.trim() || undefined,
         }),
       });
 
@@ -190,13 +192,15 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="min-h-screen py-12 px-4 sm:px-6 bg-gradient-to-b from-primary-50 to-white">
-      <div className="max-w-md mx-auto">
-        <div className="rounded-2xl border border-primary-100 bg-white shadow-lg p-6 sm:p-8">
-          <h1 className="text-2xl font-bold text-primary-800 mb-1">
+    <main className="min-h-screen bg-gradient-to-b from-primary-50 to-white flex flex-col">
+      <AuthTopBar />
+      <div className="flex-1 flex flex-col lg:flex-row items-stretch justify-center gap-0 px-2 sm:px-3 py-6 lg:py-8">
+        <div className="w-full max-w-[1400px] flex flex-col lg:flex-row rounded-2xl border border-primary-100 bg-white shadow-xl overflow-hidden min-h-[520px] lg:min-h-[560px]">
+        <div className="w-full lg:w-[55%] lg:min-w-[400px] lg:max-w-[700px] shrink-0 p-8 sm:p-10 flex flex-col justify-center overflow-y-auto">
+          <h1 className="text-3xl font-bold text-primary-800 mb-2">
             {mode === "complete" ? "Complete your profile" : "Create your matrimonial profile"}
           </h1>
-          <p className="text-gray-600 text-sm mb-6">
+          <p className="text-gray-600 mb-6">
             {mode === "complete"
               ? "You signed up with Google. Add a few details to finish."
               : "Join thousands finding their perfect match in Sri Lanka."}
@@ -443,6 +447,47 @@ export default function RegisterPage() {
               </Link>
             </p>
           )}
+        </div>
+        <div className="w-full lg:w-[45%] lg:min-w-[320px] lg:flex-1 p-6 sm:p-8 flex flex-col justify-center gap-5 bg-primary-100/50 border-l border-primary-100">
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-4">
+              <div className="shrink-0 w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Privacy First</h3>
+                <p className="text-sm text-gray-600">Data that reveals your identity is shared only with the profiles you accept. You are in control of your data.</p>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div className="shrink-0 w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Genuine and Verified Accounts</h3>
+                <p className="text-sm text-gray-600">We manually review all profiles and verify the accuracy of the necessary information.</p>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div className="shrink-0 w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Paid Accounts Only</h3>
+                <p className="text-sm text-gray-600">We attract only genuine seekers for an efficient selection process. <Link href="/dashboard/premium" className="text-primary-600 hover:text-primary-700 font-medium">Check pricing here</Link>.</p>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div className="shrink-0 w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Live Support</h3>
+                <p className="text-sm text-gray-600">We are available on Telephone, Email and Social Media to give you a helping hand when you need us.</p>
+              </div>
+            </div>
+          </div>
+        </div>
         </div>
       </div>
     </main>

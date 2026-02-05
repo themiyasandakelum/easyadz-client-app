@@ -54,7 +54,7 @@ export async function GET(
 
   try {
     const rows = await sql`
-      SELECT id, name, dob, profession, job_title, degree, bio, location, family_details, lifestyle_preferences, avatar_url, photo_blurred, country, region_district, ethnicity, religion, civil_status, education_level, language, created_at
+      SELECT id, name, dob, profession, job_title, degree, bio, location, family_details, lifestyle_preferences, avatar_url, photo_blurred, country, region_district, ethnicity, religion, civil_status, education_level, language, is_verified, created_at
       FROM profiles
       WHERE id = ${profileId}
       LIMIT 1

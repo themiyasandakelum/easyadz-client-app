@@ -15,6 +15,7 @@ interface MyListing {
 
 const drawerNavItems = [
   { href: "/dashboard", label: "Home", icon: "🏠" },
+  { href: "/dashboard/verification", label: "Verification", icon: "✓" },
   { href: "/dashboard/notifications", label: "Notifications", icon: "🔔" },
   { href: "/dashboard/pending-requests", label: "Pending Requests", icon: "📩" },
   { href: "/dashboard/ai-matches", label: "AI Matrimonial Matches", icon: "💕" },
@@ -100,7 +101,20 @@ export function DashboardSidebarContent({
           )}
           {!collapsed && (
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-gray-900 truncate">{userName ?? "User"}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="font-semibold text-gray-900 truncate">{userName ?? "User"}</p>
+                {verificationStatus === "verified" && (
+                  <span
+                    className="shrink-0 flex items-center justify-center rounded-full bg-[#1877F2] text-white w-4 h-4"
+                    title="Verified"
+                    aria-label="Verified"
+                  >
+                    <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path fillRule="evenodd" d="M20.707 5.293a1 1 0 010 1.414l-11 11a1 1 0 01-1.414 0l-5-5a1 1 0 011.414-1.414L9 15.586 19.293 5.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-gray-500 mt-0.5">
                 {verificationStatus === "verified"
                   ? "Verified"

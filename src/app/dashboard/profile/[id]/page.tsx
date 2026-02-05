@@ -7,6 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { getIdToken } from "@/lib/auth";
 import { DashboardScaffold } from "../../components/DashboardScaffold";
+import { VerificationStatus } from "@/app/components/VerificationStatus";
 import { addRecentView } from "@/lib/recent-views";
 
 interface PublicProfile {
@@ -199,7 +200,10 @@ export default function OtherUserProfilePage() {
 
             {/* Name + age + location */}
             <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">{profile.name}</h1>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-2xl font-bold text-gray-900">{profile.name}</h1>
+                <VerificationStatus isVerified={!!profile.is_verified} />
+              </div>
               {(profile.age != null || profile.location) && (
                 <p className="text-gray-600 text-sm mt-1">
                   {[profile.age != null ? `${profile.age} yrs` : null, profile.location]
@@ -207,6 +211,7 @@ export default function OtherUserProfilePage() {
                     .join(" · ")}
                 </p>
               )}
+              <VerificationStatus isVerified={!!profile.is_verified} showNotice className="mt-2" />
             </div>
 
             {/* Middle: Professional & Education card */}

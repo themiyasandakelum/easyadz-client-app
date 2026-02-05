@@ -75,7 +75,7 @@ export default function ChatPage() {
   const listingIdFromUrl = searchParams.get("listingId");
   const categoryFromUrl = searchParams.get("category");
 
-  const category = (categoryFromUrl && VALID_CATEGORIES.includes(categoryFromUrl))
+  const category = (categoryFromUrl && VALID_CATEGORIES.includes(categoryFromUrl as ListingCategory))
     ? (categoryFromUrl as ListingCategory)
     : "vehicle";
 

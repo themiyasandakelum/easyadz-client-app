@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   const priceMax = searchParams.get("price_max");
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "50", 10) || 50, 100);
 
-  if (!category || !VALID_CATEGORIES.includes(category)) {
+  if (!category || !VALID_CATEGORIES.includes(category as (typeof VALID_CATEGORIES)[number])) {
     return NextResponse.json(
       { error: "Query parameter 'category' is required and must be one of: " + VALID_CATEGORIES.join(", ") },
       { status: 400 }

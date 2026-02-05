@@ -46,8 +46,13 @@ export async function GET(request: NextRequest) {
   const ageMaxParam = searchParams.get("age_max");
   const religion = searchParams.get("religion")?.trim() || null;
   const profession = searchParams.get("profession")?.trim() || null;
-  const limit = Math.min(parseInt(searchParams.get("limit") ?? "50", 10) || 50, 100);
+  const limitParam = searchParams.get("limit");
+  const limit = Math.min(
+    Math.max(1, parseInt(limitParam ?? "10", 10) || 10),
+    100
+  );
 
+  const onlyVerified = searchParams.get("only_verified") === "true" || searchParams.get("only_verified") === "1";
   const ageMin = ageMinParam != null && ageMinParam !== "" ? parseInt(ageMinParam, 10) : null;
   const ageMax = ageMaxParam != null && ageMaxParam !== "" ? parseInt(ageMaxParam, 10) : null;
   if (ageMin != null && (isNaN(ageMin) || ageMin < 18 || ageMin > 120)) {
@@ -94,7 +99,8 @@ export async function GET(request: NextRequest) {
         ${profession},
         ${excludeUserId},
         ${showGender},
-        ${limit}
+        ${limit},
+        ${onlyVerified}
       )
     `;
     const list = Array.isArray(rows) ? rows : [rows].filter(Boolean);

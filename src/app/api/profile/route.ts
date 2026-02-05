@@ -3,6 +3,7 @@ import { verifyFirebaseToken } from "@/lib/firebase-admin";
 import { PROFESSION_CATEGORIES } from "@/lib/profession";
 import { POST_AD_CATEGORIES } from "@/lib/listings-types";
 import { sql } from "@/lib/db";
+import { sendWelcomeEmail } from "@/lib/send-email";
 
 const VALID_INTEREST_CATEGORIES = POST_AD_CATEGORIES.map((c) => c.value);
 
@@ -43,9 +44,20 @@ export async function GET(request: NextRequest) {
 
   try {
     const rows = await sql`
-      SELECT id, user_id, name, dob, gender, lifestyle_preferences, phone, bio, location, avatar_url, photo_blurred, profession, job_title, degree, family_details, country, region_district, ethnicity, religion, civil_status, education_level, language, has_matrimonial_profile, interesting_categories, created_at, updated_at
-      FROM profiles
-      WHERE user_id = ${userId}
+      SELECT p.id, p.user_id, p.name, p.dob, p.gender, p.lifestyle_preferences, p.phone, p.bio, p.location, p.avatar_url, p.photo_blurred, p.profession, p.job_title, p.degree, p.family_details, p.country, p.region_district, p.ethnicity, p.religion, p.civil_status, p.education_level, p.language, p.has_matrimonial_profile, p.interesting_categories, p.status, p.role, p.created_at, p.updated_at,
+        CASE
+          WHEN v.status = 'approved' THEN 'verified'
+          WHEN v.status IN ('pending_ai', 'pending_admin') THEN 'pending'
+          ELSE 'none'
+        END AS verification_status
+      FROM profiles p
+      LEFT JOIN LATERAL (
+        SELECT status FROM profile_verifications
+        WHERE profile_id = p.id
+        ORDER BY created_at DESC
+        LIMIT 1
+      ) v ON true
+      WHERE p.user_id = ${userId}
       LIMIT 1
     `;
     const profile = Array.isArray(rows) ? rows[0] : rows;
@@ -196,7 +208,7 @@ export async function PATCH(request: NextRequest) {
         { status: 400 }
       );
     }
-    const invalid = interesting_categories.filter((c) => typeof c !== "string" || !VALID_INTEREST_CATEGORIES.includes(c));
+    const invalid = interesting_categories.filter((c) => typeof c !== "string" || !VALID_INTEREST_CATEGORIES.includes(c as (typeof VALID_INTEREST_CATEGORIES)[number]));
     if (invalid.length > 0) {
       return NextResponse.json(
         { error: `Invalid categories. Allowed: ${VALID_INTEREST_CATEGORIES.join(", ")}` },
@@ -298,7 +310,7 @@ export async function PATCH(request: NextRequest) {
     values.push(userId);
     const rows = await sql.unsafe(
       `UPDATE profiles SET ${updates.join(", ")} WHERE user_id = $${idx} RETURNING id, user_id, name, dob, gender, lifestyle_preferences, phone, bio, location, avatar_url, photo_blurred, profession, job_title, degree, family_details, country, region_district, ethnicity, religion, civil_status, education_level, language, has_matrimonial_profile, interesting_categories, created_at, updated_at`,
-      values
+      values as (string | number | boolean | null)[]
     );
     const profile = Array.isArray(rows) ? rows[0] : rows;
     if (!profile) {
@@ -367,7 +379,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { user_id, name, dob, gender, lifestyle_preferences, phone } = body;
+  const { user_id, name, dob, gender, lifestyle_preferences, phone, email } = body;
   if (!user_id || !name || !dob || !Array.isArray(lifestyle_preferences)) {
     return NextResponse.json(
       { error: "user_id, name, dob, and lifestyle_preferences are required." },
@@ -389,10 +401,41 @@ export async function POST(request: NextRequest) {
         ${name},
         ${dob}::date,
         ${JSON.stringify(lifestyle_preferences)}::jsonb,
-        ${validGender}::gender_type
+        ${validGender}::gender_type,
+        ${email?.trim() || null}
       )
     `;
     const profile = Array.isArray(rows) ? rows[0] : rows;
+
+    // Send welcome email: direct Resend (when RESEND_API_KEY in .env.local) or Edge Function
+    const recipientEmail = email?.trim();
+    if (recipientEmail) {
+      if (process.env.RESEND_API_KEY) {
+        sendWelcomeEmail({ to: recipientEmail }).then((r) => {
+          if (!r.ok) console.error("Welcome email failed:", r.error);
+        });
+      } else {
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (supabaseUrl && supabaseKey) {
+          fetch(`${supabaseUrl}/functions/v1/send-email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${supabaseKey}`,
+            },
+            body: JSON.stringify({
+              type: "INSERT",
+              table: "profiles",
+              schema: "public",
+              record: { email: recipientEmail },
+              old_record: null,
+            }),
+          }).catch((err) => console.error("Welcome email trigger failed:", err));
+        }
+      }
+    }
+
     return NextResponse.json(profile);
   } catch (err) {
     console.error("Profile insert error:", err);

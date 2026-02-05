@@ -10,6 +10,7 @@ import {
   signInWithGoogle,
 } from "@/lib/auth";
 import { POST_AD_CATEGORIES } from "@/lib/listings-types";
+import { AuthTopBar } from "../components/AuthTopBar";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -141,13 +142,15 @@ export default function SignInPage() {
   }
 
   return (
-    <main className="min-h-screen py-12 px-4 sm:px-6 bg-gradient-to-b from-primary-50 to-white">
-      <div className="max-w-md mx-auto">
-        <div className="rounded-2xl border border-primary-100 bg-white shadow-lg p-6 sm:p-8">
-          <h1 className="text-2xl font-bold text-primary-800 mb-1">
+    <main className="min-h-screen bg-gradient-to-b from-primary-50 to-white flex flex-col">
+      <AuthTopBar />
+      <div className="flex-1 flex flex-col lg:flex-row items-stretch justify-center gap-0 px-2 sm:px-3 py-6 lg:py-8">
+        <div className="w-full max-w-[1400px] flex flex-col lg:flex-row rounded-2xl border border-primary-100 bg-white shadow-xl overflow-hidden min-h-[520px] lg:min-h-[560px]">
+        <div className="w-full lg:w-[560px] lg:min-w-[500px] shrink-0 p-8 sm:p-10 flex flex-col justify-center">
+          <h1 className="text-3xl font-bold text-primary-800 mb-2">
             Sign in
           </h1>
-          <p className="text-gray-600 text-sm mb-6">
+          <p className="text-gray-600 mb-6">
             Use your account to continue. New? Create a profile instead.
           </p>
 
@@ -166,7 +169,7 @@ export default function SignInPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
                 autoComplete="email"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
               />
             </div>
 
@@ -185,7 +188,7 @@ export default function SignInPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Your password"
                   autoComplete="current-password"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-10 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
                 />
                 <button
                   type="button"
@@ -251,7 +254,7 @@ export default function SignInPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-lg bg-primary-600 py-3 text-white font-medium hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
+              className="w-full rounded-lg bg-primary-600 py-3.5 text-white font-medium hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
             >
               {isLoading ? "Signing in…" : "Sign in with email"}
             </button>
@@ -270,7 +273,7 @@ export default function SignInPage() {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            className="w-full rounded-lg border border-gray-300 bg-white py-3 px-4 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+            className="w-full rounded-lg border border-gray-300 bg-white py-3.5 px-4 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden>
               <path
@@ -302,6 +305,23 @@ export default function SignInPage() {
               Create profile
             </Link>
           </p>
+
+          <p className="mt-4 text-center">
+            <Link
+              href="/admin/signin"
+              className="text-sm text-gray-500 hover:text-primary-600 transition"
+            >
+              Admin login
+            </Link>
+          </p>
+        </div>
+        <div className="w-full lg:flex-1 min-w-[360px] relative min-h-[320px] lg:min-h-[520px]">
+          <img
+            src="/signin-hero.png"
+            alt="easyadz.lk - Your Advertising Partner"
+            className="absolute inset-0 w-full h-full object-cover object-center"
+          />
+        </div>
         </div>
       </div>
     </main>

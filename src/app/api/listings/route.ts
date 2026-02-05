@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
   const categoriesList =
     categoriesParam?.trim()
-      ? categoriesParam.split(",").map((c) => c.trim()).filter((c) => VALID_CATEGORIES.includes(c))
+      ? categoriesParam.split(",").map((c) => c.trim()).filter((c) => VALID_CATEGORIES.includes(c as (typeof VALID_CATEGORIES)[number]))
       : [];
 
   try {
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       FROM listings
       WHERE 1=1
       ${sellerId ? sql`AND seller_id = ${sellerId}` : sql``}
-      ${category && VALID_CATEGORIES.includes(category) ? sql`AND category = ${category}` : sql``}
+      ${category && VALID_CATEGORIES.includes(category as (typeof VALID_CATEGORIES)[number]) ? sql`AND category = ${category}` : sql``}
       ${categoriesList.length > 0 ? sql`AND category = ANY(${categoriesList})` : sql``}
       ${location?.trim() ? sql`AND location ILIKE ${"%" + location.trim() + "%"}` : sql``}
       ${featured === "true" ? sql`AND is_featured = true` : sql``}
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
-  if (!VALID_CATEGORIES.includes(category)) {
+  if (!VALID_CATEGORIES.includes(category as (typeof VALID_CATEGORIES)[number])) {
     return NextResponse.json(
       { error: `category must be one of: ${VALID_CATEGORIES.join(", ")}` },
       { status: 400 }

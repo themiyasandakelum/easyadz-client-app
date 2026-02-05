@@ -17,7 +17,9 @@
     "pgvector": "^0.2.1",
     "postgres": "^3.4.4",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "resend": "^6.9.1",
+    "sharp": "^0.33.5"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

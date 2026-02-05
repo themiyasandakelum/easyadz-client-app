@@ -27,3 +27,15 @@ export async function verifyFirebaseToken(
   const decoded = await getAuth(app).verifyIdToken(idToken);
   return { uid: decoded.uid };
 }
+
+/** Get Firebase user email by uid (for notification fallback when profile.email is null). */
+export async function getFirebaseUserEmail(uid: string): Promise<string | null> {
+  const app = getAdminApp();
+  if (!app) return null;
+  try {
+    const user = await getAuth(app).getUser(uid);
+    return user.email ?? null;
+  } catch {
+    return null;
+  }
+}

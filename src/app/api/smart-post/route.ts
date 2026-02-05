@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
     if (!parsed.title || typeof parsed.title !== "string") {
       parsed.title = "Untitled listing";
     }
-    if (!parsed.category || !VALID_CATEGORIES.includes(parsed.category)) {
+    if (!parsed.category || !VALID_CATEGORIES.includes(parsed.category as (typeof VALID_CATEGORIES)[number])) {
       parsed.category = "electronic";
     }
     if (!parsed.description || typeof parsed.description !== "string") {

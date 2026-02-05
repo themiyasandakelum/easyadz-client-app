@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyFirebaseToken } from "@/lib/firebase-admin";
+import { verifyFirebaseToken, getFirebaseUserEmail } from "@/lib/firebase-admin";
 import { sql } from "@/lib/db";
+import { sendNewMessageEmail } from "@/lib/send-email";
 
 /** GET: List messages in room. Auth required; user must be participant. */
 export async function GET(
@@ -226,6 +227,37 @@ export async function POST(
       SET last_message = ${content}, updated_at = now()
       WHERE id = ${roomId}
     `;
+
+    // Send new message email to recipient (when RESEND_API_KEY is set)
+    const recipientId = r.buyer_id === senderId ? r.seller_id : r.buyer_id;
+    if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+      console.log("[chat] RESEND_API_KEY not set, skipping new message email");
+    }
+    if (process.env.RESEND_API_KEY) {
+      const recipientRows = await sql`
+        SELECT email, user_id FROM profiles WHERE id = ${recipientId} LIMIT 1
+      `;
+      const recipient = Array.isArray(recipientRows) ? recipientRows[0] : recipientRows;
+      let recipientEmail = recipient ? (recipient as { email?: string; user_id?: string }).email : null;
+      if (!recipientEmail && recipient) {
+        const userId = (recipient as { user_id?: string }).user_id;
+        if (userId) recipientEmail = await getFirebaseUserEmail(userId);
+      }
+      if (process.env.NODE_ENV === "development" && !recipientEmail) {
+        console.log("[chat] Recipient has no email (profile or Firebase), skipping. recipientId:", recipientId);
+      }
+      if (recipientEmail) {
+        if (process.env.NODE_ENV === "development") {
+          console.log("[chat] Sending new message email to:", recipientEmail);
+        }
+        const preview = content.slice(0, 80) + (content.length > 80 ? "…" : "");
+        sendNewMessageEmail({ to: recipientEmail, preview })
+          .then((r) => {
+            if (!r.ok) console.error("New message email failed:", r.error);
+          })
+          .catch((err) => console.error("New message email failed:", err));
+      }
+    }
 
     return NextResponse.json(
       {
