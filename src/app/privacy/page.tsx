@@ -6,7 +6,7 @@ export default function PrivacyPage() {
     <main className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
       <AuthTopBar />
       <div className="max-w-2xl mx-auto px-4 py-12">
-        <h1 className="text-2xl font-bold text-primary-800 mb-4">Privacy policy</h1>
+        <h1 className="text-xl font-bold text-primary-800 mb-3">Privacy policy</h1>
         <div className="rounded-xl border border-gray-200 bg-white p-6 space-y-4 text-gray-600 text-sm">
           <p>
             EasyAdz respects your privacy. This policy describes how we collect, use, and protect your personal information.

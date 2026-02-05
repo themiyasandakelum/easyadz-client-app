@@ -145,12 +145,12 @@ export default function SignInPage() {
     <main className="min-h-screen bg-gradient-to-b from-primary-50 to-white flex flex-col">
       <AuthTopBar />
       <div className="flex-1 flex flex-col lg:flex-row items-stretch justify-center gap-0 px-2 sm:px-3 py-6 lg:py-8">
-        <div className="w-full max-w-[1400px] flex flex-col lg:flex-row rounded-2xl border border-primary-100 bg-white shadow-xl overflow-hidden min-h-[520px] lg:min-h-[560px]">
-        <div className="w-full lg:w-[560px] lg:min-w-[500px] shrink-0 p-8 sm:p-10 flex flex-col justify-center">
-          <h1 className="text-3xl font-bold text-primary-800 mb-2">
+        <div className="w-full max-w-[1000px] flex flex-col lg:flex-row rounded-xl border border-primary-100 bg-white shadow-xl overflow-hidden min-h-[380px] lg:min-h-[420px]">
+        <div className="w-full lg:w-[480px] lg:min-w-[420px] shrink-0 p-6 sm:p-7 flex flex-col justify-center">
+          <h1 className="text-lg font-bold text-primary-800 mb-1.5">
             Sign in
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-sm text-gray-600 mb-4">
             Use your account to continue. New? Create a profile instead.
           </p>
 
@@ -315,7 +315,7 @@ export default function SignInPage() {
             </Link>
           </p>
         </div>
-        <div className="w-full lg:flex-1 min-w-[360px] relative min-h-[320px] lg:min-h-[520px]">
+        <div className="w-full lg:flex-1 min-w-[280px] relative min-h-[240px] lg:min-h-[420px]">
           <img
             src="/signin-hero.png"
             alt="easyadz.lk - Your Advertising Partner"

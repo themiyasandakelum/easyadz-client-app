@@ -98,7 +98,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardScaffold>
-      <div className="w-full max-w-full px-2 min-[600px]:px-4 py-4 min-[600px]:py-6 min-h-[calc(100vh-4rem)] flex flex-col gap-5 min-[600px]:gap-6">
+      <div className="w-full max-w-full px-2 min-[600px]:px-3 py-3 min-[600px]:py-4 min-h-[calc(100vh-4rem)] flex flex-col gap-4 min-[600px]:gap-5">
           {loading ? (
             <div className="flex items-center justify-center flex-1">
               <div className="text-primary-700 font-medium text-lg">Loading…</div>
@@ -113,9 +113,9 @@ export default function DashboardPage() {
                 <Link
                   key={cat.value}
                   href={cat.value === "matrimonial" ? "/dashboard/search?category=matrimonial" : `/dashboard/marketplace?category=${cat.value}`}
-                  className="flex flex-col items-center gap-3 rounded-2xl border border-primary-100 bg-white p-5 min-[600px]:p-6 shadow-sm transition hover:bg-primary-50 hover:border-primary-200 hover:shadow-md"
+                  className="flex flex-col items-center gap-2 rounded-xl border border-primary-100 bg-white p-4 min-[600px]:p-5 shadow-sm transition hover:bg-primary-50 hover:border-primary-200 hover:shadow-md"
                 >
-                  <span className="text-4xl min-[600px]:text-5xl" aria-hidden>{cat.icon}</span>
+                  <span className="text-3xl min-[600px]:text-4xl" aria-hidden>{cat.icon}</span>
                   <span className="text-base min-[600px]:text-lg font-semibold text-gray-800">{cat.label}</span>
                   <span className="text-xs min-[600px]:text-sm text-gray-500 text-center">{cat.monetization}</span>
                 </Link>
@@ -143,17 +143,17 @@ export default function DashboardPage() {
               <div className="grid gap-4 min-[600px]:gap-5 grid-cols-3">
                 <Link
                   href="/dashboard/pending-requests"
-                  className="rounded-2xl border border-primary-100 bg-white p-5 min-[600px]:p-6 shadow-sm transition hover:bg-primary-50"
+                  className="rounded-xl border border-primary-100 bg-white p-4 min-[600px]:p-5 shadow-sm transition hover:bg-primary-50"
                 >
-                  <p className="text-3xl min-[600px]:text-4xl font-bold text-primary-700">{pendingRequests}</p>
+                  <p className="text-2xl min-[600px]:text-3xl font-bold text-primary-700">{pendingRequests}</p>
                   <p className="text-sm font-medium text-gray-600 mt-1">Pending requests</p>
                 </Link>
-                <div className="rounded-2xl border border-primary-100 bg-white p-5 min-[600px]:p-6 shadow-sm">
-                  <p className="text-3xl min-[600px]:text-4xl font-bold text-primary-700">{recentViews.filter((v) => v.type === "profile" && v.id !== currentProfileId).length}</p>
+                <div className="rounded-xl border border-primary-100 bg-white p-4 min-[600px]:p-5 shadow-sm">
+                  <p className="text-2xl min-[600px]:text-3xl font-bold text-primary-700">{recentViews.filter((v) => v.type === "profile" && v.id !== currentProfileId).length}</p>
                   <p className="text-sm font-medium text-gray-600 mt-1">Recent views</p>
                 </div>
-                <div className="rounded-2xl border border-primary-100 bg-white p-5 min-[600px]:p-6 shadow-sm">
-                  <p className="text-3xl min-[600px]:text-4xl font-bold text-primary-700">—</p>
+                <div className="rounded-xl border border-primary-100 bg-white p-4 min-[600px]:p-5 shadow-sm">
+                  <p className="text-2xl min-[600px]:text-3xl font-bold text-primary-700">—</p>
                   <p className="text-sm font-medium text-gray-600 mt-1">Match score</p>
                 </div>
               </div>
@@ -218,21 +218,44 @@ export default function DashboardPage() {
                 )}
               </p>
             ) : (
-              <div className="grid grid-cols-2 min-[500px]:grid-cols-3 min-[700px]:grid-cols-4 min-[900px]:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 min-[500px]:grid-cols-3 min-[700px]:grid-cols-4 gap-3">
                 {interestListings.map((listing) => (
                   <Link
                     key={listing.id}
                     href={`/dashboard/marketplace/listing/${listing.id}`}
-                    className="flex flex-col overflow-hidden rounded-xl border border-primary-100 bg-white shadow-sm transition hover:shadow-md"
+                    className="flex flex-col overflow-hidden rounded-lg border border-primary-100 bg-white shadow-sm transition hover:shadow-md"
                   >
-                    <div className="aspect-[4/3] bg-gray-100 flex items-center justify-center overflow-hidden">
-                      {listing.images?.[0] ? (
-                        <img src={listing.images[0]} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <span className="text-3xl text-gray-300">
-                          {LISTING_CATEGORIES.find((c) => c.value === listing.category)?.icon ?? "📦"}
-                        </span>
-                      )}
+                    <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+                      {(() => {
+                        const raw = listing.images;
+                        let imgs: string[] = [];
+                        if (Array.isArray(raw)) imgs = raw.filter((x): x is string => typeof x === "string").slice(0, 4);
+                        else if (typeof raw === "string") {
+                          try {
+                            const p = JSON.parse(raw);
+                            imgs = Array.isArray(p) ? p.filter((x: unknown): x is string => typeof x === "string").slice(0, 4) : [];
+                          } catch {
+                            imgs = [];
+                          }
+                        }
+                        if (imgs.length >= 2) {
+                          return (
+                            <div className="grid grid-cols-2 grid-rows-2 h-full w-full">
+                              {imgs.map((url, i) => (
+                                <img key={i} src={url} alt="" className="h-full w-full object-cover" />
+                              ))}
+                            </div>
+                          );
+                        }
+                        if (imgs.length === 1) {
+                          return <img src={imgs[0]} alt="" className="h-full w-full object-cover" />;
+                        }
+                        return (
+                          <span className="text-2xl text-gray-300">
+                            {LISTING_CATEGORIES.find((c) => c.value === listing.category)?.icon ?? "📦"}
+                          </span>
+                        );
+                      })()}
                     </div>
                     <div className="p-2">
                       <p className="font-medium text-gray-900 truncate text-sm">{listing.title}</p>

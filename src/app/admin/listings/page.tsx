@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { getIdToken } from "@/lib/auth";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { LISTING_CATEGORIES } from "@/lib/listings-types";
 
 interface ListingItem {
@@ -183,9 +184,9 @@ export default function AdminListingsPage() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white">Listing Moderation</h1>
+          <h1 className="text-xl font-bold text-white">Listing Moderation</h1>
           {sellerFilter && (
             <p className="mt-1 text-sm text-slate-400">
               Filtered by seller: {items[0]?.seller_name ?? "—"}
@@ -234,14 +235,14 @@ export default function AdminListingsPage() {
             <table className="w-full min-w-[640px] text-left">
               <thead>
                 <tr className="border-b border-slate-700 bg-slate-800/80">
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-300">Ad</th>
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-300">Title</th>
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-300">Category</th>
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-300">Price</th>
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-300">Seller</th>
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-300">Status</th>
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-300">Created</th>
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-300 text-right">Actions</th>
+                  <th className="px-3 py-2 text-sm font-semibold text-slate-300">Ad</th>
+                  <th className="px-3 py-2 text-sm font-semibold text-slate-300">Title</th>
+                  <th className="px-3 py-2 text-sm font-semibold text-slate-300">Category</th>
+                  <th className="px-3 py-2 text-sm font-semibold text-slate-300">Price</th>
+                  <th className="px-3 py-2 text-sm font-semibold text-slate-300">Seller</th>
+                  <th className="px-3 py-2 text-sm font-semibold text-slate-300">Status</th>
+                  <th className="px-3 py-2 text-sm font-semibold text-slate-300">Created</th>
+                  <th className="px-3 py-2 text-sm font-semibold text-slate-300 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -250,27 +251,27 @@ export default function AdminListingsPage() {
                     key={item.id}
                     className="border-b border-slate-700/50 hover:bg-slate-800/50"
                   >
-                    <td className="px-4 py-3">
-                      <div className="h-12 w-16 overflow-hidden rounded-lg bg-slate-700">
+                    <td className="px-3 py-2">
+                      <div className="h-10 w-14 overflow-hidden rounded-lg bg-slate-700">
                         {item.images?.[0] ? (
                           <img src={item.images[0]} alt="" className="h-full w-full object-cover" />
                         ) : (
-                          <span className="flex h-full w-full items-center justify-center text-xl text-slate-500">
+                          <span className="flex h-full w-full items-center justify-center text-lg text-slate-500">
                             {LISTING_CATEGORIES.find((c) => c.value === item.category)?.icon ?? "📦"}
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       <p className="max-w-[200px] truncate font-medium text-white">{item.title}</p>
                       {item.location && (
                         <p className="text-xs text-slate-500 truncate max-w-[200px]">{item.location}</p>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       <span className="text-sm text-slate-400 capitalize">{item.category}</span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       {item.price != null ? (
                         <span className="text-sm font-medium text-green-400">
                           Rs. {Number(item.price).toLocaleString()}
@@ -279,14 +280,14 @@ export default function AdminListingsPage() {
                         <span className="text-slate-500">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-400">{item.seller_name}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2 text-sm text-slate-400">{item.seller_name}</td>
+                    <td className="px-3 py-2">
                       <StatusBadge status={item.status} />
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-400">
+                    <td className="px-3 py-2 text-sm text-slate-400">
                       {new Date(item.created_at).toLocaleString()}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-3 py-2 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
@@ -304,26 +305,30 @@ export default function AdminListingsPage() {
                         >
                           {item.status === "pending" ? "Preview" : "Open"}
                         </Link>
-                        {item.status === "pending" && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => handleAction(item.id, "approve")}
-                              disabled={actioning === item.id}
-                              className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-500 disabled:opacity-50"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleAction(item.id, "reject")}
-                              disabled={actioning === item.id}
-                              className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50"
-                            >
-                              Reject
-                            </button>
-                          </>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleAction(item.id, "approve")}
+                          disabled={actioning === item.id || item.status === "approved"}
+                          className={`rounded-lg px-3 py-1.5 text-sm font-medium disabled:opacity-50 ${
+                            item.status === "approved"
+                              ? "bg-slate-600 text-slate-400 cursor-default"
+                              : "bg-green-600 text-white hover:bg-green-500"
+                          }`}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAction(item.id, "reject")}
+                          disabled={actioning === item.id || item.status === "rejected"}
+                          className={`rounded-lg px-3 py-1.5 text-sm font-medium disabled:opacity-50 ${
+                            item.status === "rejected"
+                              ? "bg-slate-600 text-slate-400 cursor-default"
+                              : "bg-red-600 text-white hover:bg-red-500"
+                          }`}
+                        >
+                          Reject
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -350,7 +355,7 @@ export default function AdminListingsPage() {
               <>
                 <div className="mb-4 flex items-start justify-between">
                   <div>
-                    <h2 className="text-xl font-bold text-white">{viewing.title}</h2>
+                    <h2 className="text-lg font-bold text-white">{viewing.title}</h2>
                     {viewing.status === "pending" && (
                       <p className="mt-1 text-sm text-amber-400">Review for moderation — check content before approving</p>
                     )}
@@ -414,24 +419,29 @@ export default function AdminListingsPage() {
                       </p>
                     </div>
                   )}
-                  {viewing.status === "pending" && (
-                    <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-700">
-                      <Link
-                        href={`/dashboard/marketplace/listing/${viewing.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
-                      >
-                        Preview as user
-                      </Link>
+                  <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-700">
+                      {viewing.status === "pending" && (
+                        <Link
+                          href={`/dashboard/marketplace/listing/${viewing.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
+                        >
+                          Preview as user
+                        </Link>
+                      )}
                       <button
                         type="button"
                         onClick={() => {
                           handleAction(viewing.id, "approve");
                           setViewing(null);
                         }}
-                        disabled={actioning === viewing.id}
-                        className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-500 disabled:opacity-50"
+                        disabled={actioning === viewing.id || viewing.status === "approved"}
+                        className={`rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 ${
+                          viewing.status === "approved"
+                            ? "bg-slate-600 text-slate-400 cursor-default"
+                            : "bg-green-600 text-white hover:bg-green-500"
+                        }`}
                       >
                         Approve
                       </button>
@@ -441,13 +451,16 @@ export default function AdminListingsPage() {
                           handleAction(viewing.id, "reject");
                           setViewing(null);
                         }}
-                        disabled={actioning === viewing.id}
-                        className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50"
+                        disabled={actioning === viewing.id || viewing.status === "rejected"}
+                        className={`rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 ${
+                          viewing.status === "rejected"
+                            ? "bg-slate-600 text-slate-400 cursor-default"
+                            : "bg-red-600 text-white hover:bg-red-500"
+                        }`}
                       >
                         Reject
                       </button>
                     </div>
-                  )}
                 </div>
               </>
             ) : null}

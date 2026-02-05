@@ -7,6 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { getIdToken } from "@/lib/auth";
 import { DashboardScaffold } from "../components/DashboardScaffold";
+import { MatrimonialProfileCard } from "@/app/components/MatrimonialProfileCard";
 import { LISTING_CATEGORIES, type ListingCategory } from "@/lib/listings-types";
 
 interface UserProfile {
@@ -19,9 +20,17 @@ interface RecommendedProfile {
   name: string;
   age: number | null;
   profession: string | null;
+  job_title: string | null;
   location: string | null;
+  country: string | null;
+  region_district: string | null;
+  ethnicity: string | null;
+  religion: string | null;
+  education_level: string | null;
   avatar_url: string | null;
   photo_blurred?: boolean;
+  is_verified?: boolean;
+  verification_status?: "verified" | "pending" | "unverified";
 }
 
 const VALID_CATEGORIES = LISTING_CATEGORIES.map((c) => c.value);
@@ -55,68 +64,55 @@ function getListingSubtitle(listing: Listing): string {
   }
 }
 
+function normalizeImages(images: unknown): string[] {
+  if (Array.isArray(images)) return images.filter((x): x is string => typeof x === "string");
+  if (typeof images === "string") {
+    try {
+      const p = JSON.parse(images);
+      return Array.isArray(p) ? p.filter((x: unknown): x is string => typeof x === "string") : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 function UnifiedListingCard({ listing }: { listing: Listing }) {
   const subtitle = getListingSubtitle(listing);
-  const imageUrl = listing.images?.[0];
+  const displayImages = normalizeImages(listing.images).slice(0, 4);
 
   return (
     <Link
       href={`/dashboard/marketplace/listing/${listing.id}`}
-      className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md"
+      className="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:shadow-md"
     >
-      <div className="aspect-[4/3] bg-gray-100 flex items-center justify-center overflow-hidden">
-        {imageUrl ? (
-          <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+      <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+        {displayImages.length >= 2 ? (
+          <div className="grid grid-cols-2 grid-rows-2 h-full w-full">
+            {displayImages.map((url, i) => (
+              <img key={i} src={url} alt="" className="h-full w-full object-cover" />
+            ))}
+          </div>
+        ) : displayImages.length === 1 ? (
+          <img src={displayImages[0]} alt="" className="h-full w-full object-cover" />
         ) : (
-          <span className="text-4xl text-gray-300">
+          <span className="text-2xl text-gray-300">
             {LISTING_CATEGORIES.find((c) => c.value === listing.category)?.icon ?? "📦"}
           </span>
         )}
       </div>
-      <div className="p-3">
-        <h3 className="font-semibold text-gray-900 truncate">{listing.title}</h3>
-        {subtitle && <p className="text-sm text-gray-600 truncate">{subtitle}</p>}
-        {listing.price != null && (
-          <p className="text-sm font-medium text-green-700 mt-1">Rs. {Number(listing.price).toLocaleString()}</p>
-        )}
-        {listing.location && <p className="text-xs text-gray-500 truncate mt-0.5">{listing.location}</p>}
-      </div>
-    </Link>
-  );
-}
-
-function RecommendedMatchCard({ profile }: { profile: RecommendedProfile }) {
-  const imgUrl = profile.avatar_url;
-  const blurred = profile.photo_blurred;
-
-  return (
-    <Link
-      href={`/dashboard/profile/${profile.id}`}
-      className="flex w-40 shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md"
-    >
-      <div className="aspect-[3/4] bg-gray-100 flex items-center justify-center overflow-hidden relative">
-        {imgUrl ? (
-          <img
-            src={imgUrl}
-            alt=""
-            className={`h-full w-full object-cover ${blurred ? "blur-md" : ""}`}
-          />
-        ) : (
-          <span className="text-4xl text-gray-300">👤</span>
-        )}
-      </div>
       <div className="p-2">
-        <p className="font-medium text-gray-900 truncate text-sm">{profile.name}</p>
-        {(profile.age != null || profile.profession) && (
-          <p className="text-xs text-gray-600 truncate">
-            {[profile.age != null ? `${profile.age} yrs` : null, profile.profession].filter(Boolean).join(" • ")}
-          </p>
+        <h3 className="font-medium text-gray-900 truncate text-sm">{listing.title}</h3>
+        {subtitle && <p className="text-xs text-gray-600 truncate">{subtitle}</p>}
+        {listing.price != null && (
+          <p className="text-xs font-medium text-green-700 mt-0.5">Rs. {Number(listing.price).toLocaleString()}</p>
         )}
-        {profile.location && <p className="text-xs text-gray-500 truncate mt-0.5">{profile.location}</p>}
+        {listing.location && <p className="text-xs text-gray-500 truncate">{listing.location}</p>}
       </div>
     </Link>
   );
 }
+
 
 export default function MarketplaceDashboardPage() {
   const router = useRouter();
@@ -296,17 +292,17 @@ export default function MarketplaceDashboardPage() {
               <section className="mb-6" aria-label="Recommended Matches">
                 <h2 className="text-sm font-semibold text-gray-800 mb-3">Recommended Matches</h2>
                 {loadingMatches ? (
-                  <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4">
+                  <div className="grid grid-cols-1 min-[500px]:grid-cols-2 min-[700px]:grid-cols-3 gap-3">
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="w-40 shrink-0 rounded-xl border border-gray-200 bg-white h-52 animate-pulse" />
+                      <div key={i} className="rounded-xl border border-gray-200 bg-white h-24 animate-pulse" />
                     ))}
                   </div>
                 ) : recommendedMatches.length === 0 ? (
                   <p className="text-gray-500 text-sm py-4">No matches yet. Check back later or refine your search.</p>
                 ) : (
-                  <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-thin">
+                  <div className="grid grid-cols-1 min-[500px]:grid-cols-2 min-[700px]:grid-cols-3 gap-3">
                     {recommendedMatches.map((profile) => (
-                      <RecommendedMatchCard key={profile.id} profile={profile} />
+                      <MatrimonialProfileCard key={profile.id} {...profile} />
                     ))}
                   </div>
                 )}
@@ -331,9 +327,9 @@ export default function MarketplaceDashboardPage() {
             {featuredListings.length > 0 && (
               <section className="mb-6" aria-label="Featured ads">
                 <h2 className="text-sm font-semibold text-gray-800 mb-3">Featured</h2>
-                <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-thin">
+                <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-thin">
                   {featuredListings.map((listing) => (
-                    <div key={listing.id} className="w-48 shrink-0">
+                    <div key={listing.id} className="w-36 shrink-0">
                       <UnifiedListingCard listing={listing} />
                     </div>
                   ))}
@@ -349,15 +345,15 @@ export default function MarketplaceDashboardPage() {
                   : "Fresh for You"}
               </h2>
               {loadingFresh ? (
-                <div className="grid grid-cols-1 min-[500px]:grid-cols-2 min-[600px]:grid-cols-3 gap-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="rounded-xl border border-gray-200 bg-white h-48 animate-pulse" />
+                <div className="grid grid-cols-2 min-[500px]:grid-cols-3 min-[700px]:grid-cols-4 gap-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="rounded-lg border border-gray-200 bg-white aspect-square animate-pulse" />
                   ))}
                 </div>
               ) : filteredFresh.length === 0 ? (
                 <p className="text-gray-500 text-sm py-8 text-center">No ads yet. Be the first to post!</p>
               ) : (
-                <div className="grid grid-cols-1 min-[500px]:grid-cols-2 min-[600px]:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 min-[500px]:grid-cols-3 min-[700px]:grid-cols-4 gap-3">
                   {filteredFresh.map((listing) => (
                     <UnifiedListingCard key={listing.id} listing={listing} />
                   ))}

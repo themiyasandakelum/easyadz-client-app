@@ -42,8 +42,20 @@ export async function GET(request: NextRequest) {
 
   try {
     const rows = await sql`
-      SELECT p.id, p.name, p.dob, p.profession, p.location, p.avatar_url, p.photo_blurred
+      SELECT p.id, p.name, p.dob, p.profession, p.job_title, p.location, p.country, p.region_district,
+        p.ethnicity, p.religion, p.education_level, p.avatar_url, p.photo_blurred, p.is_verified,
+        CASE
+          WHEN v.status = 'approved' THEN 'verified'
+          WHEN v.status IN ('pending_ai', 'pending_admin') THEN 'pending'
+          ELSE 'unverified'
+        END AS verification_status
       FROM profiles p
+      LEFT JOIN LATERAL (
+        SELECT status FROM profile_verifications
+        WHERE profile_id = p.id
+        ORDER BY created_at DESC
+        LIMIT 1
+      ) v ON true
       WHERE p.has_matrimonial_profile = true
         AND p.user_id != ${currentUserId}
       ORDER BY p.updated_at DESC

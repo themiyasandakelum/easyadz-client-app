@@ -308,7 +308,7 @@ export default function PostAdPage() {
             >
               ← Back to {isEditMode ? "My Ads" : "dashboard"}
             </Link>
-            <h1 className="text-xl font-bold text-primary-800 mb-6">
+            <h1 className="text-lg font-bold text-primary-800 mb-4">
               {isEditMode ? "Edit Ad" : "Post an Ad"}
             </h1>
 

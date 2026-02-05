@@ -244,7 +244,7 @@ export default function ListingDetailPage() {
                 </div>
               )}
               <div className="p-4">
-                <h1 className="text-xl font-bold text-gray-900">{listing.title}</h1>
+                <h1 className="text-lg font-bold text-gray-900">{listing.title}</h1>
                 {listing.price != null && (
                   <p className="text-lg font-semibold text-green-700 mt-1">Rs. {Number(listing.price).toLocaleString()}</p>
                 )}

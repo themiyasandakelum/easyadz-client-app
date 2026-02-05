@@ -49,9 +49,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const rows = await sql`
-      SELECT id, seller_id, category, title, price, location, description, attributes, images, is_featured, created_at
+      SELECT id, seller_id, category, title, price, location, description, attributes, images, is_featured, status, created_at
       FROM listings
       WHERE 1=1
+      ${!mine ? sql`AND status = 'approved'` : sql``}
       ${sellerId ? sql`AND seller_id = ${sellerId}` : sql``}
       ${category && VALID_CATEGORIES.includes(category as (typeof VALID_CATEGORIES)[number]) ? sql`AND category = ${category}` : sql``}
       ${categoriesList.length > 0 ? sql`AND category = ANY(${categoriesList})` : sql``}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { getIdToken } from "@/lib/auth";
 import { DashboardScaffold } from "../components/DashboardScaffold";
@@ -35,26 +35,34 @@ export default function MyAdsPage() {
   const [listings, setListings] = useState<MyListing[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const token = await getIdToken();
-        if (!token) return;
-        const res = await fetch("/api/listings?mine=true&limit=50", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok || cancelled) return;
-        const data = await res.json();
-        if (!cancelled) setListings(Array.isArray(data) ? data : []);
-      } catch {
-        if (!cancelled) setListings([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
+  const fetchListings = useCallback(async () => {
+    try {
+      const token = await getIdToken();
+      if (!token) return;
+      const res = await fetch(`/api/listings?mine=true&limit=50&_t=${Date.now()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setListings(Array.isArray(data) ? data : []);
+    } catch {
+      setListings([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchListings();
+  }, [fetchListings]);
+
+  useEffect(() => {
+    const onFocus = () => fetchListings();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [fetchListings]);
 
   return (
     <DashboardScaffold headerContent={<h1 className="text-lg font-semibold text-gray-900">My Active Ads</h1>}>
@@ -63,12 +71,22 @@ export default function MyAdsPage() {
           <p className="text-sm text-gray-600">
             Manage your listings. Bump up or edit to get more visibility.
           </p>
-          <Link
-            href="/dashboard/post-ad"
-            className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
-          >
-            Post New Ad
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => { setLoading(true); fetchListings(); }}
+              disabled={loading}
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              Refresh
+            </button>
+            <Link
+              href="/dashboard/post-ad"
+              className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
+            >
+              Post New Ad
+            </Link>
+          </div>
         </div>
 
         {loading ? (

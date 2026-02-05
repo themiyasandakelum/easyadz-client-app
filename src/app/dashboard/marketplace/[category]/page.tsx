@@ -29,7 +29,7 @@ export default function MarketplaceCategoryPage() {
             <Link href="/dashboard" className="mb-4 inline-block text-sm font-medium text-primary-600 hover:text-primary-700">
               ← Back to dashboard
             </Link>
-            <h1 className="text-xl font-bold text-primary-800 mb-2">
+            <h1 className="text-lg font-bold text-primary-800 mb-2">
               {cat?.icon} {cat?.label}
             </h1>
             <p className="text-sm text-gray-600 mb-6">{cat?.monetization}</p>

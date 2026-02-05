@@ -229,7 +229,7 @@ export function DashboardScaffold({ children, headerContent }: DashboardScaffold
       <div className="flex flex-1 flex-col min-h-screen pb-20 min-[600px]:pb-0">
         {/* Top Bar: when pinned, hide menu + profile; when not pinned, show full header */}
         <header className="sticky top-0 z-30 border-b border-primary-100 bg-white/95 backdrop-blur">
-          <div className="mx-auto flex w-full max-w-full items-center gap-3 px-2 min-[600px]:px-4 py-3">
+          <div className="mx-auto flex w-full max-w-full items-center gap-2 px-2 min-[600px]:px-3 py-2">
             {!pinned && (
               <button
                 type="button"
@@ -251,7 +251,7 @@ export function DashboardScaffold({ children, headerContent }: DashboardScaffold
               <img
                 src="/easyadz-logo.png"
                 alt="easyadz.lk"
-                className="h-12 min-[600px]:h-14 w-auto object-contain"
+                className="h-10 min-[600px]:h-11 w-auto object-contain"
               />
             </Link>
 

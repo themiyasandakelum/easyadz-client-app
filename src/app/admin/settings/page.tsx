@@ -79,7 +79,7 @@ export default function AdminSettingsPage() {
   if (loading) {
     return (
       <div>
-        <h1 className="text-2xl font-bold text-white mb-6">Pricing Settings</h1>
+        <h1 className="text-xl font-bold text-white mb-4">Pricing Settings</h1>
         <div className="rounded-xl border border-slate-700 bg-slate-800 p-12 text-center text-slate-400">
           Loading settings...
         </div>
@@ -89,7 +89,7 @@ export default function AdminSettingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-6">Pricing Settings</h1>
+      <h1 className="text-xl font-bold text-white mb-4">Pricing Settings</h1>
 
       {error && (
         <div className="mb-4 rounded-lg bg-red-900/30 border border-red-800 px-4 py-3 text-red-400 text-sm">

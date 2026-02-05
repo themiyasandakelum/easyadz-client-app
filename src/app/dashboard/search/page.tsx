@@ -7,7 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { getIdToken } from "@/lib/auth";
 import { DashboardScaffold } from "../components/DashboardScaffold";
-import { VerificationStatus, type VerificationStatusType } from "@/app/components/VerificationStatus";
+import { MatrimonialProfileCard } from "@/app/components/MatrimonialProfileCard";
 import { LISTING_CATEGORIES, type ListingCategory } from "@/lib/listings-types";
 import { PROFESSION_CATEGORIES } from "@/lib/profession";
 import { RELIGION_OPTIONS } from "@/lib/profile-options";
@@ -63,108 +63,73 @@ function getListingSubtitle(listing: SearchListing): string {
   }
 }
 
+function normalizeListingImages(images: unknown): string[] {
+  if (Array.isArray(images)) return images.filter((x): x is string => typeof x === "string").slice(0, 4);
+  if (typeof images === "string") {
+    try {
+      const p = JSON.parse(images);
+      return Array.isArray(p) ? p.filter((x: unknown): x is string => typeof x === "string").slice(0, 4) : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 function ListingSearchCard({ listing }: { listing: SearchListing }) {
   const subtitle = getListingSubtitle(listing);
-  const imageUrl = listing.images?.[0];
+  const images = normalizeListingImages(listing.images);
   return (
     <Link
       href={`/dashboard/marketplace/listing/${listing.id}`}
-      className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md"
+      className="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:shadow-md"
     >
-      <div className="aspect-[4/3] bg-gray-100 flex items-center justify-center overflow-hidden">
-        {imageUrl ? (
-          <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+      <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+        {images.length >= 2 ? (
+          <div className="grid grid-cols-2 grid-rows-2 h-full w-full">
+            {images.map((url, i) => (
+              <img key={i} src={url} alt="" className="h-full w-full object-cover" />
+            ))}
+          </div>
+        ) : images.length === 1 ? (
+          <img src={images[0]} alt="" className="h-full w-full object-cover" />
         ) : (
-          <span className="text-4xl text-gray-300">
+          <span className="text-2xl text-gray-300">
             {LISTING_CATEGORIES.find((c) => c.value === listing.category)?.icon ?? "📦"}
           </span>
         )}
       </div>
-      <div className="p-3">
-        <h3 className="font-semibold text-gray-900 truncate">{listing.title}</h3>
-        {subtitle && <p className="text-sm text-gray-600 truncate">{subtitle}</p>}
+      <div className="p-2">
+        <h3 className="font-medium text-gray-900 truncate text-sm">{listing.title}</h3>
+        {subtitle && <p className="text-xs text-gray-600 truncate">{subtitle}</p>}
         {listing.price != null && (
-          <p className="text-sm font-medium text-green-700 mt-1">Rs. {Number(listing.price).toLocaleString()}</p>
+          <p className="text-xs font-medium text-green-700 mt-0.5">Rs. {Number(listing.price).toLocaleString()}</p>
         )}
-        {listing.location && <p className="text-xs text-gray-500 truncate mt-0.5">{listing.location}</p>}
+        {listing.location && <p className="text-xs text-gray-500 truncate">{listing.location}</p>}
       </div>
     </Link>
   );
 }
 
 function ProfileSearchCard({ profile }: { profile: SearchProfile }) {
-  const imgUrl = profile.avatar_url;
-  const blurred = profile.photo_blurred;
   return (
-    <Link
-      href={`/dashboard/profile/${profile.id}`}
-      className="flex items-center gap-4 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md"
-    >
-      {/* Avatar */}
-      <div className="shrink-0">
-        {imgUrl ? (
-          <img
-            src={imgUrl}
-            alt=""
-            className={`h-14 w-14 rounded-full object-cover ring-2 ring-gray-100 ${blurred ? "blur-sm" : ""}`}
-          />
-        ) : (
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400 text-2xl ring-2 ring-gray-100">
-            👤
-          </div>
-        )}
-      </div>
-
-      {/* Main content */}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 min-w-0">
-          <p className="font-semibold text-gray-900 truncate">{profile.name}</p>
-          <VerificationStatus
-            status={
-              profile.verification_status ??
-              (profile.is_verified ? "verified" : "unverified")
-            }
-          />
-        </div>
-
-        {/* Details grid (compact like your reference) */}
-        <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm text-gray-700">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-gray-400">🎂</span>
-            <span className="truncate">{profile.age != null ? `${profile.age} years` : "—"}</span>
-          </div>
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-gray-400">🧑</span>
-            <span className="truncate">{profile.ethnicity ?? "—"}</span>
-          </div>
-
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-gray-400">📍</span>
-            <span className="truncate">{profile.location ?? profile.region_district ?? profile.country ?? "—"}</span>
-          </div>
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-gray-400">🛐</span>
-            <span className="truncate">{profile.religion ?? "—"}</span>
-          </div>
-
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-gray-400">💼</span>
-            <span className="truncate">{profile.job_title ?? profile.profession ?? "—"}</span>
-          </div>
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-gray-400">🎓</span>
-            <span className="truncate">{profile.education_level ?? "—"}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Action */}
-      <div className="shrink-0">
-        <span className="text-sm font-semibold text-primary-700 hover:text-primary-800">
-          More details →
-        </span>
-      </div>
-    </Link>
+    <MatrimonialProfileCard
+      id={profile.id}
+      name={profile.name}
+      age={profile.age}
+      profession={profile.profession}
+      job_title={profile.job_title}
+      location={profile.location}
+      country={profile.country}
+      region_district={profile.region_district}
+      ethnicity={profile.ethnicity}
+      religion={profile.religion}
+      education_level={profile.education_level}
+      avatar_url={profile.avatar_url}
+      photo_blurred={profile.photo_blurred}
+      is_verified={profile.is_verified}
+      verification_status={profile.verification_status}
+    />
   );
 }
 
@@ -300,7 +265,7 @@ export default function DashboardSearchPage() {
 
             {!category ? (
               <>
-                <h1 className="text-xl font-bold text-gray-900 mb-2">Search</h1>
+                <h1 className="text-lg font-bold text-gray-900 mb-2">Search</h1>
                 <p className="text-sm text-gray-600 mb-6">
                   Select a category to start. Matrimonial uses profile filters (Age, Religion, Profession). Other categories use listing filters (Price, Location).
                 </p>
@@ -484,7 +449,7 @@ export default function DashboardSearchPage() {
                     {listings.length === 0 && !searching && (
                       <p className="text-gray-500 text-sm py-8">Run a search or adjust filters.</p>
                     )}
-                    <div className="grid grid-cols-1 min-[500px]:grid-cols-2 min-[900px]:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 min-[500px]:grid-cols-3 min-[700px]:grid-cols-4 gap-3">
                       {listings.map((listing) => (
                         <ListingSearchCard key={listing.id} listing={listing} />
                       ))}

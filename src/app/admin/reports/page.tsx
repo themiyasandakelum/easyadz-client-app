@@ -88,7 +88,7 @@ export default function AdminReportsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-6">Ad Moderation</h1>
+      <h1 className="text-xl font-bold text-white mb-4">Ad Moderation</h1>
 
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <label className="flex items-center gap-2">

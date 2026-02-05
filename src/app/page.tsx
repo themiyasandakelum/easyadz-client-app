@@ -29,7 +29,7 @@ export default function Home() {
           <h1 className="text-4xl sm:text-5xl font-bold text-white drop-shadow-lg mb-3">
             EasyAdz
           </h1>
-          <p className="text-white/95 text-lg sm:text-xl max-w-md drop-shadow-md">
+          <p className="text-white/95 text-base sm:text-lg max-w-md drop-shadow-md">
             Find your perfect match. Join thousands in Sri Lanka.
           </p>
         </div>

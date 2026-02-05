@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { getIdToken } from "@/lib/auth";
 
 interface User {
@@ -84,7 +85,7 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-6">User Management</h1>
+      <h1 className="text-xl font-bold text-white mb-4">User Management</h1>
 
       <div className="mb-6">
         <input
@@ -114,25 +115,25 @@ export default function AdminUsersPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-700 bg-slate-800/80">
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-300">
+                  <th className="px-3 py-2 text-sm font-semibold text-slate-300">
                     Name
                   </th>
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-300">
+                  <th className="px-3 py-2 text-sm font-semibold text-slate-300">
                     Phone
                   </th>
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-300">
+                  <th className="px-3 py-2 text-sm font-semibold text-slate-300">
                     User ID
                   </th>
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-300">
+                  <th className="px-3 py-2 text-sm font-semibold text-slate-300">
                     Role
                   </th>
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-300">
+                  <th className="px-3 py-2 text-sm font-semibold text-slate-300">
                     Verification
                   </th>
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-300">
+                  <th className="px-3 py-2 text-sm font-semibold text-slate-300">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-300">
+                  <th className="px-3 py-2 text-sm font-semibold text-slate-300">
                     Actions
                   </th>
                 </tr>
@@ -143,16 +144,16 @@ export default function AdminUsersPage() {
                     key={user.id}
                     className="border-b border-slate-700/50 hover:bg-slate-700/30"
                   >
-                    <td className="px-4 py-3 text-white font-medium">
+                    <td className="px-3 py-2 text-white font-medium">
                       {user.name || "—"}
                     </td>
-                    <td className="px-4 py-3 text-slate-400">
+                    <td className="px-3 py-2 text-slate-400">
                       {user.phone || "—"}
                     </td>
-                    <td className="px-4 py-3 text-slate-500 text-sm font-mono truncate max-w-[180px]">
+                    <td className="px-3 py-2 text-slate-500 text-sm font-mono truncate max-w-[180px]">
                       {user.userId}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       <span
                         className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
                           user.role === "admin"
@@ -163,7 +164,7 @@ export default function AdminUsersPage() {
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       <span
                         className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
                           user.isVerified
@@ -174,7 +175,7 @@ export default function AdminUsersPage() {
                         {user.isVerified ? "Verified" : "Not verified"}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       <span
                         className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
                           user.status === "active"
@@ -185,7 +186,7 @@ export default function AdminUsersPage() {
                         {user.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
                         <Link
                           href={`/admin/listings?seller=${user.id}`}

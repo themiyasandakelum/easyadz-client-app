@@ -195,12 +195,12 @@ export default function RegisterPage() {
     <main className="min-h-screen bg-gradient-to-b from-primary-50 to-white flex flex-col">
       <AuthTopBar />
       <div className="flex-1 flex flex-col lg:flex-row items-stretch justify-center gap-0 px-2 sm:px-3 py-6 lg:py-8">
-        <div className="w-full max-w-[1400px] flex flex-col lg:flex-row rounded-2xl border border-primary-100 bg-white shadow-xl overflow-hidden min-h-[520px] lg:min-h-[560px]">
-        <div className="w-full lg:w-[55%] lg:min-w-[400px] lg:max-w-[700px] shrink-0 p-8 sm:p-10 flex flex-col justify-center overflow-y-auto">
-          <h1 className="text-3xl font-bold text-primary-800 mb-2">
+        <div className="w-full max-w-[1000px] flex flex-col lg:flex-row rounded-xl border border-primary-100 bg-white shadow-xl overflow-hidden min-h-[380px] lg:min-h-[420px]">
+        <div className="w-full lg:w-[480px] lg:min-w-[420px] shrink-0 p-6 sm:p-7 flex flex-col justify-center overflow-y-auto">
+          <h1 className="text-lg font-bold text-primary-800 mb-1.5">
             {mode === "complete" ? "Complete your profile" : "Create your matrimonial profile"}
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-sm text-gray-600 mb-4">
             {mode === "complete"
               ? "You signed up with Google. Add a few details to finish."
               : "Join thousands finding their perfect match in Sri Lanka."}
@@ -337,7 +337,7 @@ export default function RegisterPage() {
                       : "border-gray-200 bg-white text-gray-600 hover:border-primary-200 hover:bg-primary-50/50"
                   }`}
                 >
-                  <span className="text-3xl" aria-hidden>👨</span>
+                  <span className="text-2xl" aria-hidden>👨</span>
                   <span className="font-semibold">Men</span>
                 </button>
                 <button
@@ -349,7 +349,7 @@ export default function RegisterPage() {
                       : "border-gray-200 bg-white text-gray-600 hover:border-primary-200 hover:bg-primary-50/50"
                   }`}
                 >
-                  <span className="text-3xl" aria-hidden>👩</span>
+                  <span className="text-2xl" aria-hidden>👩</span>
                   <span className="font-semibold">Women</span>
                 </button>
               </div>
@@ -448,7 +448,7 @@ export default function RegisterPage() {
             </p>
           )}
         </div>
-        <div className="w-full lg:w-[45%] lg:min-w-[320px] lg:flex-1 p-6 sm:p-8 flex flex-col justify-center gap-5 bg-primary-100/50 border-l border-primary-100">
+        <div className="w-full lg:flex-1 min-w-[280px] p-6 sm:p-7 flex flex-col justify-center gap-5 bg-primary-100/50 border-l border-primary-100">
           <div className="flex flex-col gap-4">
             <div className="flex gap-4">
               <div className="shrink-0 w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">

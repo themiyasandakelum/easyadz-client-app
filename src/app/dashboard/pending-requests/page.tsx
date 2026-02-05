@@ -7,6 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { getIdToken } from "@/lib/auth";
 import { DashboardScaffold } from "../components/DashboardScaffold";
+import { MatrimonialProfileCard } from "@/app/components/MatrimonialProfileCard";
 
 interface PendingRequest {
   id: string;
@@ -17,7 +18,16 @@ interface PendingRequest {
   sender_name: string | null;
   sender_avatar_url: string | null;
   sender_profession: string | null;
+  sender_job_title: string | null;
   sender_location: string | null;
+  sender_country: string | null;
+  sender_region_district: string | null;
+  sender_age: number | null;
+  sender_ethnicity: string | null;
+  sender_religion: string | null;
+  sender_education_level: string | null;
+  sender_is_verified?: boolean;
+  sender_verification_status?: string;
 }
 
 function formatTimeAgo(dateStr: string): string {
@@ -212,67 +222,55 @@ export default function DashboardPendingRequestsPage() {
                     ? "-translate-x-full opacity-0"
                     : "translate-x-0 opacity-100";
               return (
-              <li
-                key={req.id}
-                className={`flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-300 ease-out ${slideClass}`}
-              >
-                <Link
-                  href={`/dashboard/profile/${req.sender_id}`}
-                  className="shrink-0"
+                <li
+                  key={req.id}
+                  className={`transition-all duration-300 ease-out ${slideClass}`}
                 >
-                  {req.sender_avatar_url ? (
-                    <img
-                      src={req.sender_avatar_url}
-                      alt=""
-                      className="h-14 w-14 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-14 w-14 rounded-full bg-primary-100 flex items-center justify-center text-xl font-semibold text-primary-700">
-                      {req.sender_name?.charAt(0) ?? "?"}
-                    </div>
-                  )}
-                </Link>
-                <div className="flex-1 min-w-0">
-                  <Link
-                    href={`/dashboard/profile/${req.sender_id}`}
-                    className="font-medium text-gray-900 hover:text-primary-600 truncate block"
-                  >
-                    {req.sender_name ?? "Unknown"}
-                  </Link>
-                  {req.sender_profession && (
-                    <p className="text-sm text-gray-600 truncate">
-                      {req.sender_profession}
-                    </p>
-                  )}
-                  {req.sender_location && (
-                    <p className="text-xs text-gray-500 truncate">
-                      {req.sender_location}
-                    </p>
-                  )}
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {formatTimeAgo(req.created_at)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => handleAccept(req)}
-                    disabled={actingId === req.id}
-                    className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-60 transition"
-                  >
-                    {actingId === req.id ? "…" : "Accept"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDecline(req)}
-                    disabled={actingId === req.id}
-                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60 transition"
-                  >
-                    {actingId === req.id ? "…" : "Decline"}
-                  </button>
-                </div>
-              </li>
-            );
+                  <MatrimonialProfileCard
+                    id={req.sender_id}
+                    name={req.sender_name ?? "Unknown"}
+                    age={req.sender_age}
+                    profession={req.sender_profession}
+                    job_title={req.sender_job_title}
+                    location={req.sender_location}
+                    country={req.sender_country}
+                    region_district={req.sender_region_district}
+                    ethnicity={req.sender_ethnicity}
+                    religion={req.sender_religion}
+                    education_level={req.sender_education_level}
+                    avatar_url={req.sender_avatar_url}
+                    is_verified={req.sender_is_verified}
+                    verification_status={
+                      req.sender_verification_status as "verified" | "pending" | "unverified" | undefined
+                    }
+                    action={
+                      <div className="flex flex-col gap-2">
+                        <p className="text-xs text-gray-500 text-right">
+                          {formatTimeAgo(req.created_at)}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleAccept(req)}
+                            disabled={actingId === req.id}
+                            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-60 transition"
+                          >
+                            {actingId === req.id ? "…" : "Accept"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDecline(req)}
+                            disabled={actingId === req.id}
+                            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60 transition"
+                          >
+                            {actingId === req.id ? "…" : "Decline"}
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  />
+                </li>
+              );
             })}
           </ul>
         )}

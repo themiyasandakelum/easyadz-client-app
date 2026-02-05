@@ -369,7 +369,7 @@ export default function ProfileEditPage() {
                     </button>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h2 className="text-xl font-bold text-gray-900">{name || "—"}</h2>
+                    <h2 className="text-lg font-bold text-gray-900">{name || "—"}</h2>
                     <p className="text-sm text-gray-600 mt-0.5">{roleText}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 mt-4 text-sm">
                       <div>

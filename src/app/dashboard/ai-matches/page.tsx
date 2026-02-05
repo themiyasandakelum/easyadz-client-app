@@ -7,6 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { getIdToken } from "@/lib/auth";
 import { DashboardScaffold } from "../components/DashboardScaffold";
+import { MatrimonialProfileCard } from "@/app/components/MatrimonialProfileCard";
 
 interface AIMatch {
   id: string;
@@ -19,43 +20,30 @@ interface AIMatch {
   photo_blurred?: boolean;
   religion: string | null;
   country: string | null;
+  region_district?: string | null;
+  ethnicity?: string | null;
+  education_level?: string | null;
   compatibility: number;
 }
 
 function AIMatchCard({ match }: { match: AIMatch }) {
-  const imgUrl = match.avatar_url;
-  const blurred = match.photo_blurred;
   return (
-    <Link
-      href={`/dashboard/profile/${match.id}`}
-      className="flex flex-col overflow-hidden rounded-xl border border-primary-100 bg-white shadow-sm transition hover:shadow-md hover:border-primary-200"
-    >
-      <div className="aspect-[3/4] bg-gray-100 flex items-center justify-center overflow-hidden relative">
-        {imgUrl ? (
-          <img
-            src={imgUrl}
-            alt=""
-            className={`h-full w-full object-cover ${blurred ? "blur-md" : ""}`}
-          />
-        ) : (
-          <span className="text-4xl text-gray-300">👤</span>
-        )}
-        <div className="absolute bottom-2 right-2 rounded-lg bg-primary-600 px-2.5 py-1 text-sm font-bold text-white shadow">
-          {match.compatibility}%
-        </div>
-      </div>
-      <div className="p-3">
-        <p className="font-semibold text-gray-900 truncate">{match.name}</p>
-        {(match.age != null || match.profession) && (
-          <p className="text-sm text-gray-600 truncate">
-            {[match.age != null ? `${match.age} yrs` : null, match.profession].filter(Boolean).join(" • ")}
-          </p>
-        )}
-        {match.location && <p className="text-xs text-gray-500 truncate mt-0.5">{match.location}</p>}
-        {match.religion && <p className="text-xs text-gray-500 truncate">{match.religion}</p>}
-        <p className="text-sm font-medium text-primary-600 mt-2">View profile →</p>
-      </div>
-    </Link>
+    <MatrimonialProfileCard
+      id={match.id}
+      name={match.name}
+      age={match.age}
+      profession={match.profession}
+      job_title={match.job_title}
+      location={match.location}
+      country={match.country}
+      region_district={match.region_district}
+      ethnicity={match.ethnicity}
+      religion={match.religion}
+      education_level={match.education_level}
+      avatar_url={match.avatar_url}
+      photo_blurred={match.photo_blurred}
+      compatibility={match.compatibility}
+    />
   );
 }
 
@@ -169,7 +157,7 @@ export default function DashboardAIMatchesPage() {
                 Refresh
               </button>
             </div>
-            <div className="grid grid-cols-1 min-[500px]:grid-cols-2 min-[900px]:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 min-[500px]:grid-cols-2 gap-3">
               {matches.map((match) => (
                 <AIMatchCard key={match.id} match={match} />
               ))}

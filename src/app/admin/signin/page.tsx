@@ -111,7 +111,7 @@ export default function AdminSignInPage() {
     <main className="min-h-screen flex items-center justify-center bg-slate-900 p-6">
       <div className="w-full max-w-md">
         <div className="rounded-2xl border border-slate-700 bg-slate-800 p-8 shadow-xl">
-          <h1 className="text-2xl font-bold text-white mb-1">Admin Sign In</h1>
+          <h1 className="text-xl font-bold text-white mb-1">Admin Sign In</h1>
           <p className="text-slate-400 text-sm mb-6">
             Sign in with an admin account to access the dashboard.
           </p>

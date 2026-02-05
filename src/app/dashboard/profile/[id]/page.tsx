@@ -201,7 +201,7 @@ export default function OtherUserProfilePage() {
             {/* Name + age + location */}
             <div className="mb-6">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl font-bold text-gray-900">{profile.name}</h1>
+                <h1 className="text-xl font-bold text-gray-900">{profile.name}</h1>
                 <VerificationStatus isVerified={!!profile.is_verified} />
               </div>
               {(profile.age != null || profile.location) && (

@@ -6,7 +6,7 @@ export default function ContactPage() {
     <main className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
       <AuthTopBar />
       <div className="max-w-2xl mx-auto px-4 py-12">
-        <h1 className="text-2xl font-bold text-primary-800 mb-4">Contact us</h1>
+        <h1 className="text-xl font-bold text-primary-800 mb-3">Contact us</h1>
         <p className="text-gray-600 mb-6">
           Have questions or feedback? We&apos;d love to hear from you.
         </p>

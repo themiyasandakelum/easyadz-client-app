@@ -196,7 +196,7 @@ export default function AdminVerificationsPage() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-white">Verification List</h1>
+        <h1 className="text-xl font-bold text-white">Verification List</h1>
         <div className="flex gap-2">
           {STATUS_OPTIONS.map((opt) => (
             <button
@@ -322,7 +322,7 @@ export default function AdminVerificationsPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">{viewing.name}</h2>
+              <h2 className="text-lg font-bold text-white">{viewing.name}</h2>
               <button
                 type="button"
                 onClick={() => setViewing(null)}

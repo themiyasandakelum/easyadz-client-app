@@ -107,12 +107,12 @@ export default function AdminLayout({
       {/* Sidebar */}
       <aside
         className={`${
-          sidebarOpen ? "w-56" : "w-16"
+          sidebarOpen ? "w-48" : "w-14"
         } bg-slate-800 border-r border-slate-700 flex flex-col transition-all duration-200`}
       >
-        <div className="p-4 border-b border-slate-700 flex items-center justify-between">
+        <div className="p-3 border-b border-slate-700 flex items-center justify-between">
           {sidebarOpen && (
-            <span className="font-bold text-white text-lg">EasyAdz Admin</span>
+            <span className="font-bold text-white text-base">EasyAdz Admin</span>
           )}
           <button
             type="button"
@@ -130,7 +130,7 @@ export default function AdminLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition ${
+                className={`flex items-center gap-2 px-2.5 py-2 rounded-lg transition text-sm ${
                   active
                     ? "bg-amber-600/20 text-amber-400 border border-amber-500/30"
                     : "text-slate-400 hover:text-white hover:bg-slate-700"
@@ -168,7 +168,7 @@ export default function AdminLayout({
 
       {/* Main content */}
       <main className="flex-1 overflow-auto">
-        <div className="p-6 lg:p-8">{children}</div>
+        <div className="p-4 lg:p-6">{children}</div>
       </main>
     </div>
   );
