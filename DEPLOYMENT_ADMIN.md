@@ -4,27 +4,23 @@ When logged in as both User and Admin at the same time, the app can get stuck be
 
 ---
 
-## Production: Use Subdomains
+## Vercel: Two separate projects (recommended)
 
-| App   | URL                  | Firebase session |
-|-------|----------------------|------------------|
-| User  | `easyadz.lk` or `app.easyadz.lk` | Separate |
-| Admin | `admin.easyadz.lk`   | Separate         |
+See **[VERCEL_TWO_PROJECTS.md](./VERCEL_TWO_PROJECTS.md)** for step-by-step setup.
 
-### 1. Add admin subdomain in your hosting (Vercel, etc.)
+- **User project:** `easyadz.vercel.app`
+- **Admin project:** `easyadz-admin.vercel.app` (set `NEXT_PUBLIC_IS_ADMIN=true`)
 
-- Add `admin.easyadz.lk` as a domain
-- Point it to the same project as your main app
+---
 
-### 2. Add to Firebase authorized domains
+## Alternative: One project, subdomains
 
-1. Firebase Console → Authentication → Settings
-2. Authorized domains → Add domain
-3. Add `admin.easyadz.lk` (and `easyadz.lk` if not already there)
+| App   | URL                  |
+|-------|----------------------|
+| User  | `easyadz.lk`         |
+| Admin | `admin.easyadz.lk`   |
 
-### 3. DNS
-
-Add a CNAME or A record for `admin.easyadz.lk` pointing to your host.
+Add both domains to the same Vercel project. Add to Firebase authorized domains.
 
 ---
 
