@@ -16,12 +16,14 @@ import {
   type ListingCategory,
 } from "@/lib/listings-types";
 import type { SmartPostResponse } from "@/app/api/smart-post/route";
+import { useConfig } from "@/contexts/ConfigContext";
 
 export default function PostAdPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
   const isEditMode = Boolean(editId);
+  const { enable_ad_pricing, price_featured_ad } = useConfig();
 
   const [category, setCategory] = useState<ListingCategory | "">("");
   const [title, setTitle] = useState("");
@@ -36,6 +38,7 @@ export default function PostAdPage() {
   const [error, setError] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [loadedAttributes, setLoadedAttributes] = useState<Record<string, string> | null>(null);
+  const [isFeatured, setIsFeatured] = useState(false);
 
   useEffect(() => {
     const auth = getFirebaseAuth();
@@ -76,6 +79,7 @@ export default function PostAdPage() {
         setTitle(data.title || "");
         setPrice(data.price != null ? String(data.price) : "");
         setLocation(data.location || "");
+        setIsFeatured(!!data.is_featured);
         setDescription(typeof data.description === "string" ? data.description : "");
         setAttributes(attrs);
         const imgs = data.images;
@@ -139,6 +143,7 @@ export default function PostAdPage() {
             description: description.trim(),
             location: location.trim() || null,
             attributes: attrs,
+            is_featured: isFeatured,
           }),
         });
         if (!res.ok) {
@@ -205,6 +210,7 @@ export default function PostAdPage() {
           location: location.trim() || null,
           attributes: attrs,
           images: [],
+          is_featured: isFeatured,
         }),
       });
       if (!res.ok) {
@@ -587,6 +593,32 @@ export default function PostAdPage() {
                 </div>
               )}
 
+              {/* Featured listing option */}
+              <div className="rounded-xl border border-primary-100 bg-white p-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isFeatured}
+                    onChange={(e) => setIsFeatured(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <span className="text-sm font-medium text-gray-800">
+                    Feature this ad (top placement)
+                  </span>
+                </label>
+                {!isEditMode && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    {enable_ad_pricing && isFeatured ? (
+                      <span>
+                        Cost: <strong className="text-primary-700">LKR {price_featured_ad.toLocaleString()}</strong>
+                      </span>
+                    ) : (
+                      <span className="text-green-600 font-medium">Cost: FREE</span>
+                    )}
+                  </p>
+                )}
+              </div>
+
               {error && (
                 <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
               )}
@@ -596,7 +628,15 @@ export default function PostAdPage() {
                 disabled={saving}
                 className="w-full rounded-lg bg-primary-600 py-3 text-white font-medium hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {saving ? (isEditMode ? "Saving…" : "Posting…") : (isEditMode ? "Save changes" : "Post Ad")}
+                {saving
+                  ? isEditMode
+                    ? "Saving…"
+                    : "Posting…"
+                  : isEditMode
+                    ? "Save changes"
+                    : enable_ad_pricing && isFeatured
+                      ? "Pay and Post"
+                      : "Post Ad"}
               </button>
             </form>
       </div>

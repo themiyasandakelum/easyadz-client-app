@@ -6,11 +6,13 @@ import { DashboardScaffold } from "../components/DashboardScaffold";
 import { onAuthStateChanged } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { getIdToken } from "@/lib/auth";
+import { useConfig } from "@/contexts/ConfigContext";
 
 type VerificationStatus = "none" | "pending" | "verified";
 
 export default function VerificationPage() {
   const router = useRouter();
+  const { enable_ad_pricing, price_verification_fee } = useConfig();
   const idInputRef = useRef<HTMLInputElement>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
   const [idFile, setIdFile] = useState<File | null>(null);
@@ -171,6 +173,18 @@ export default function VerificationPage() {
 
         {status === "none" && (
           <form onSubmit={handleSubmit} className="space-y-6">
+            {enable_ad_pricing && price_verification_fee > 0 && (
+              <div className="rounded-xl border border-primary-200 bg-primary-50 p-4">
+                <p className="text-sm text-primary-800">
+                  Verification fee: <strong>LKR {price_verification_fee.toLocaleString()}</strong>
+                </p>
+              </div>
+            )}
+            {(!enable_ad_pricing || price_verification_fee === 0) && (
+              <div className="rounded-xl border border-green-200 bg-green-50 p-4">
+                <p className="text-sm font-medium text-green-800">Cost: FREE</p>
+              </div>
+            )}
             <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="mb-4 text-base font-semibold text-gray-900">
                 Step 1: ID Photo
@@ -279,7 +293,11 @@ export default function VerificationPage() {
                 disabled={submitting || !idFile || !selfieFile}
                 className="w-full rounded-xl bg-primary-600 px-6 py-3 font-medium text-white transition hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {submitting ? "Verifying..." : "Submit for verification"}
+                {submitting
+                  ? "Verifying..."
+                  : enable_ad_pricing && price_verification_fee > 0
+                    ? `Pay LKR ${price_verification_fee.toLocaleString()} and Submit`
+                    : "Submit for verification"}
               </button>
             )}
           </form>

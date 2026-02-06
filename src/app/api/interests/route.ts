@@ -55,6 +55,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ pending_received: pendingReceived });
   } catch (err) {
     console.error("Interests count error:", err);
+    const isTimeout =
+      err && typeof err === "object" && "code" in err && (err as { code: string }).code === "57014";
+    if (isTimeout) {
+      return NextResponse.json({ pending_received: 0 });
+    }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Database error." },
       { status: 500 }

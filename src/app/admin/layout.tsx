@@ -43,9 +43,13 @@ export default function AdminLayout({
       }
       try {
         const token = await user.getIdToken();
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
         const res = await fetch("/api/profile", {
           headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
         });
+        clearTimeout(timeout);
         if (!res.ok || res.status === 404) {
           setLoading(false);
           setIsAdmin(false);

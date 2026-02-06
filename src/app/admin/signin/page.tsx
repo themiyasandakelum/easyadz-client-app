@@ -29,9 +29,13 @@ export default function AdminSignInPage() {
       }
       try {
         const token = await user.getIdToken();
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
         const res = await fetch("/api/profile", {
           headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
         });
+        clearTimeout(timeout);
         if (res.status === 404) {
           setAuthChecked(true);
           setError("No profile found. Create an account first.");
@@ -48,6 +52,7 @@ export default function AdminSignInPage() {
           setAuthChecked(true);
           return;
         }
+        setAuthChecked(true);
         router.replace("/admin/users");
       } catch {
         setAuthChecked(true);

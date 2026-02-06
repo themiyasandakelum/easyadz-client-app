@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       ${!mine ? sql`AND status = 'approved'` : sql``}
       ${sellerId ? sql`AND seller_id = ${sellerId}` : sql``}
       ${category && VALID_CATEGORIES.includes(category as (typeof VALID_CATEGORIES)[number]) ? sql`AND category = ${category}` : sql``}
-      ${categoriesList.length > 0 ? sql`AND category = ANY(${categoriesList})` : sql``}
+      ${categoriesList.length > 0 ? sql`AND category IN ${sql(categoriesList)}` : sql``}
       ${location?.trim() ? sql`AND location ILIKE ${"%" + location.trim() + "%"}` : sql``}
       ${featured === "true" ? sql`AND is_featured = true` : sql``}
       ORDER BY created_at DESC

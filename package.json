@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:admin": "next dev --turbopack -p 4000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

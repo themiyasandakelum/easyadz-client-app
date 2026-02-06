@@ -86,6 +86,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(withAge);
   } catch (err) {
     console.error("Pending interests error:", err);
+    const isTimeout =
+      err && typeof err === "object" && "code" in err && (err as { code: string }).code === "57014";
+    if (isTimeout) {
+      return NextResponse.json([]);
+    }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Failed to fetch pending requests." },
       { status: 500 }

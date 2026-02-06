@@ -51,7 +51,27 @@ export async function signOut(): Promise<void> {
 
 export async function getIdToken(): Promise<string | null> {
   const auth = getFirebaseAuth();
-  const user = auth?.currentUser;
+  if (!auth) return null;
+  let user = auth.currentUser;
+  if (!user) {
+    user = await new Promise((resolve) => {
+      let done = false;
+      let t: ReturnType<typeof setTimeout>;
+      const unsub = auth.onAuthStateChanged((u) => {
+        if (done) return;
+        done = true;
+        clearTimeout(t);
+        unsub();
+        resolve(u);
+      });
+      t = setTimeout(() => {
+        if (done) return;
+        done = true;
+        unsub();
+        resolve(auth.currentUser);
+      }, 3000);
+    });
+  }
   if (!user) return null;
   return user.getIdToken();
 }

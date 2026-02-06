@@ -189,7 +189,7 @@ export async function PATCH(
       );
     }
 
-    const { category, title, price, description, location, attributes, images } = body;
+    const { category, title, price, description, location, attributes, images, is_featured } = body;
     const updates: string[] = [];
     const values: unknown[] = [];
     let idx = 1;
@@ -222,10 +222,14 @@ export async function PATCH(
       updates.push(`images = $${idx++}`);
       values.push(images as unknown);
     }
+    if (typeof is_featured === "boolean") {
+      updates.push(`is_featured = $${idx++}`);
+      values.push(is_featured);
+    }
 
     if (updates.length === 0) {
       return NextResponse.json(
-        { error: "Provide at least one field to update: category, title, price, description, location, attributes, images." },
+        { error: "Provide at least one field to update: category, title, price, description, location, attributes, images, is_featured." },
         { status: 400 }
       );
     }
