@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
@@ -18,7 +18,7 @@ import {
 import type { SmartPostResponse } from "@/app/api/smart-post/route";
 import { useConfig } from "@/contexts/ConfigContext";
 
-export default function PostAdPage() {
+function PostAdContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
@@ -225,9 +225,11 @@ export default function PostAdPage() {
         orderedSlots.unshift(main);
       }
       const formData = new FormData();
-      for (let i = 0; i < orderedSlots.length; i++) {
-        const blob = await applyEasyAdzWatermark(orderedSlots[i].file);
-        formData.append("images", blob, `img_${i + 1}.jpg`);
+      let imgIndex = 0;
+      for (const slot of orderedSlots) {
+        if (!slot.file) continue;
+        const blob = await applyEasyAdzWatermark(slot.file);
+        formData.append("images", blob, `img_${++imgIndex}.jpg`);
       }
       const uploadRes = await fetch(`/api/listings/${listingId}/images`, {
         method: "POST",
@@ -641,5 +643,13 @@ export default function PostAdPage() {
             </form>
       </div>
     </DashboardScaffold>
+  );
+}
+
+export default function PostAdPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary-50 to-white"><div className="text-primary-700 font-medium">Loading…</div></div>}>
+      <PostAdContent />
+    </Suspense>
   );
 }

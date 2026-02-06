@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
@@ -114,12 +114,12 @@ function UnifiedListingCard({ listing }: { listing: Listing }) {
 }
 
 
-export default function MarketplaceDashboardPage() {
+function MarketplaceDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoryFromUrl = useMemo(() => {
     const c = searchParams.get("category");
-    return c && VALID_CATEGORIES.includes(c) ? (c as ListingCategory) : "";
+    return c && VALID_CATEGORIES.includes(c as ListingCategory) ? (c as ListingCategory) : "";
   }, [searchParams]);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -371,5 +371,13 @@ export default function MarketplaceDashboardPage() {
         Post Ad
       </Link>
     </DashboardScaffold>
+  );
+}
+
+export default function MarketplaceDashboardPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary-50 to-white"><div className="text-primary-700 font-medium">Loading…</div></div>}>
+      <MarketplaceDashboardContent />
+    </Suspense>
   );
 }

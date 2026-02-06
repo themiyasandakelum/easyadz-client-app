@@ -333,6 +333,7 @@ export interface ProfileBody {
   gender?: "male" | "female";
   lifestyle_preferences: string[];
   phone?: string;
+  email?: string;
 }
 
 export async function POST(request: NextRequest) {

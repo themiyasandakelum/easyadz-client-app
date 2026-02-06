@@ -67,13 +67,13 @@ export async function GET(request: NextRequest) {
       { status: 400 }
     );
   }
-  if (religion != null && religion !== "" && !VALID_RELIGIONS.includes(religion)) {
+  if (religion != null && religion !== "" && !VALID_RELIGIONS.includes(religion as (typeof VALID_RELIGIONS)[number])) {
     return NextResponse.json(
       { error: "Invalid religion." },
       { status: 400 }
     );
   }
-  if (profession != null && profession !== "" && !VALID_PROFESSIONS.includes(profession)) {
+  if (profession != null && profession !== "" && !VALID_PROFESSIONS.includes(profession as (typeof VALID_PROFESSIONS)[number])) {
     return NextResponse.json(
       { error: "Invalid profession." },
       { status: 400 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
@@ -68,7 +68,7 @@ function MiniListingCard({ listing }: { listing: RecommendedListing }) {
   );
 }
 
-export default function ChatPage() {
+function ChatPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const chatId = params?.chatId as string;
@@ -366,5 +366,13 @@ export default function ChatPage() {
         </section>
       </div>
     </DashboardScaffold>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary-50 to-white"><div className="text-primary-700 font-medium">Loading…</div></div>}>
+      <ChatPageContent />
+    </Suspense>
   );
 }

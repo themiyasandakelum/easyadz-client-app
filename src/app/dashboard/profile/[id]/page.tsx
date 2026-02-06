@@ -24,6 +24,7 @@ interface PublicProfile {
   lifestyle_preferences: string[];
   avatar_url: string | null;
   photo_blurred: boolean;
+  is_verified?: boolean;
   match_score: number;
   country?: string | null;
   region_district?: string | null;

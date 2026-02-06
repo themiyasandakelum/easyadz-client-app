@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
@@ -8,6 +8,7 @@ import { getFirebaseAuth } from "@/lib/firebase";
 import { getIdToken } from "@/lib/auth";
 import { DashboardScaffold } from "../components/DashboardScaffold";
 import { MatrimonialProfileCard } from "@/app/components/MatrimonialProfileCard";
+import type { VerificationStatusType } from "@/app/components/VerificationStatus";
 import { LISTING_CATEGORIES, type ListingCategory } from "@/lib/listings-types";
 import { PROFESSION_CATEGORIES } from "@/lib/profession";
 import { RELIGION_OPTIONS } from "@/lib/profile-options";
@@ -135,7 +136,7 @@ function ProfileSearchCard({ profile }: { profile: SearchProfile }) {
 
 const VALID_SEARCH_CATEGORIES = ["vehicle", "property", "electronic", "matrimonial"] as const;
 
-export default function DashboardSearchPage() {
+function DashboardSearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
@@ -460,5 +461,13 @@ export default function DashboardSearchPage() {
             )}
       </div>
     </DashboardScaffold>
+  );
+}
+
+export default function DashboardSearchPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary-50 to-white"><div className="text-primary-700 font-medium">Loading…</div></div>}>
+      <DashboardSearchContent />
+    </Suspense>
   );
 }

@@ -20,6 +20,7 @@ interface ChatRoom {
   lastMessage: string | null;
   updatedAt: string;
   otherPartyName: string;
+  unreadCount?: number;
 }
 
 export default function DashboardMessagesPage() {

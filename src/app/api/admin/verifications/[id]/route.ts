@@ -104,11 +104,11 @@ export async function PATCH(
     const profileId = (ver as { profile_id: string }).profile_id;
     const SYSTEM_PROFILE_ID = "00000000-0000-0000-0000-000000000001";
 
-    async function createVerificationNotification(
+    const createVerificationNotification = async (
       recipientProfileId: string,
       status: "approved" | "rejected",
       adminNotes: string | null
-    ) {
+    ) => {
       const isApproved = status === "approved";
       const title = isApproved
         ? "Your profile is verified!"
@@ -118,11 +118,11 @@ export async function PATCH(
         : adminNotes?.trim()
           ? `Your verification was rejected. ${adminNotes} Please upload your documents again and ensure your ID photo and selfie clearly match.`
           : "Your verification was rejected. The documents may not match or the images were unclear. Please upload your ID and selfie again, ensuring they clearly show the same person.";
-      await sql`
+      await sql!`
         INSERT INTO notifications (user_id, sender_id, title, body, notification_type, link)
         VALUES (${recipientProfileId}::uuid, ${SYSTEM_PROFILE_ID}::uuid, ${title}, ${body}, 'verification', '/dashboard/verification')
       `;
-    }
+    };
 
     if (action === "approve" || action === "reject") {
       if (currentStatus !== "pending_admin") {

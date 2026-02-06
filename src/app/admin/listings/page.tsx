@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { getIdToken } from "@/lib/auth";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -57,7 +57,7 @@ interface ListingDetail {
   created_at: string;
 }
 
-export default function AdminListingsPage() {
+function AdminListingsContent() {
   const searchParams = useSearchParams();
   const sellerFilter = useMemo(() => searchParams.get("seller") || null, [searchParams]);
   const [items, setItems] = useState<ListingItem[]>([]);
@@ -468,5 +468,13 @@ export default function AdminListingsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminListingsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-900"><div className="text-slate-300 font-medium">Loading…</div></div>}>
+      <AdminListingsContent />
+    </Suspense>
   );
 }

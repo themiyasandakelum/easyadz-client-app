@@ -16,6 +16,7 @@ interface Listing {
   title: string;
   price: number | null;
   location: string | null;
+  description: string | null;
   attributes: Record<string, string> | null;
   images: string[] | null;
   is_featured: boolean;
